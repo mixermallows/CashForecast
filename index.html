@@ -227,11 +227,22 @@
   </div>
 </div>
 
-<script src="script.js?v=3"></script>
+<!-- ลบ ?v=3 ออก เพื่อให้ Service Worker จัดการแคชให้เอง -->
+<script src="script.js"></script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').then(registration => console.log('SW OK')).catch(err => console.log('SW FAIL'));
+      navigator.serviceWorker.register('sw.js').then(registration => {
+        console.log('SW Registered');
+      }).catch(err => console.log('SW FAIL'));
+
+      // เพิ่มบล็อกนี้: ตรวจสอบว่ามี Service Worker ตัวใหม่เข้ามาควบคุมหน้าเว็บหรือไม่
+      let refreshing;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        window.location.reload(); // ถ้ามีของใหม่ ให้รีเฟรชหน้าเว็บทันทีเลย!
+        refreshing = true;
+      });
     });
   }
 </script>
