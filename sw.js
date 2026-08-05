@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cashforecast-v3';
+const CACHE_NAME = 'cashforecast-v4';
 const urlsToCache = [
   './',
   './index.html',
@@ -8,25 +8,27 @@ const urlsToCache = [
   './logo.png'
 ];
 
+// บังคับให้ Service Worker ตัวใหม่ทำงานทันที ไม่ต้องรอปิดแท็บ
 self.addEventListener('install', event => {
-  self.skipWaiting(); // บังคับให้ใช้ Service Worker ตัวใหม่ทันที
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
   );
 });
 
+// คืนสิทธิ์การควบคุมให้หน้าเว็บทันทีที่ activate
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName); // ลบแคชเก่าทิ้งทั้งหมด
+            return caches.delete(cacheName); // ลบแคชเวอร์ชันเก่าทิ้งทั้งหมด
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
