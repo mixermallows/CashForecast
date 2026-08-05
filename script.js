@@ -215,4 +215,130 @@ function renderPlanner() {
   document.getElementById('data-container').innerHTML = html;
 }
 
-function toggleSelectMode() { isSelectMode = !isSelectMode; selectedItems.clear(); document.getElementById('edit-btn').innerText = isSelectMode ? (currentLang==='th'?'เสร็จสิ้น':'Done') : i18n[currentLang].select; document.getElementById('edit-btn').classList.toggle('danger', isSelectMode); document
+function toggleSelectMode() { 
+  isSelectMode = !isSelectMode; 
+  selectedItems.clear(); 
+  document.getElementById('edit-btn').innerText = isSelectMode ? (currentLang==='th'?'เสร็จสิ้น':'Done') : i18n[currentLang].select; 
+  document.getElementById('edit-btn').classList.toggle('danger', isSelectMode); 
+  document.getElementById('fab-btn').style.display = isSelectMode ? 'none' : 'block'; 
+  document.getElementById('delete-bar').classList.toggle('active', isSelectMode); 
+  renderPlanner(); 
+  document.getElementById('select-count').innerText = '0'; 
+}
+
+function toggleSelect(id) { 
+  if (selectedItems.has(id)) selectedItems.delete(id); 
+  else selectedItems.add(id); 
+  renderPlanner(); 
+  document.getElementById('select-count').innerText = selectedItems.size; 
+}
+
+async function deleteSelected() {
+  if (selectedItems.size === 0) return;
+  const realIds = Array.from(selectedItems).map(id => id.split('_')[0]);
+  await supabaseClient.from('transactions').delete().in('id', realIds);
+  toggleSelectMode(); fetchTransactions();
+}
+
+async function deleteSingleItem() {
+  const fullId = document.getElementById('editing-id').value; if (!fullId) return;
+  const realId = fullId.split('_')[0]; 
+  await supabaseClient.from('transactions').delete().eq('id', realId);
+  closeSheet(); fetchTransactions();
+}
+
+function switchScreen(screenName, event) {
+  document.querySelectorAll('#app .screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screenName).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('bottom-nav').style.display = (screenName === 'profile') ? 'none' : 'flex';
+  if(event && event.currentTarget && event.currentTarget.classList.contains('nav-btn')) event.currentTarget.classList.add('active');
+  else if (screenName === 'home') document.querySelector('.nav-btn').classList.add('active');
+  document.getElementById('app').style.backgroundColor = screenName === 'scenario' ? '#2d1b69' : 'var(--bg-color)';
+  if (screenName === 'home') renderHome(); if (screenName === 'planner') renderPlanner(); if (screenName === 'scenario') updateScenario();
+}
+
+function navigateMonth(direction) {
+  let index = monthOrder.indexOf(plannerMonth); let newIndex = index + direction;
+  if (newIndex >= 0 && newIndex < monthOrder.length) { plannerMonth = monthOrder[newIndex]; renderPlanner(); }
+}
+
+const categories = { income: ['เงินเดือน','รายได้เสริม','โบนัส'], expense: ['สาธารณูปโภค','Subscription','ที่อยู่อาศัย','ช้อปปิ้ง'], debt: ['KTC','SCB','KBank','BBL','สินเชื่อ','ผ่อนของ'], savings: ['กองทุนฉุกเฉิน','ลงทุน','เป้าหมาย'] };
+function openSheetForAdd() { document.getElementById('editing-id').value=''; document.getElementById('form-name').value=''; document.getElementById('form-amount').value=''; document.getElementById('form-total-debt').value=''; document.getElementById('form-months').value=''; document.getElementById('form-interest').value=''; document.getElementById('btn-delete').style.display='none'; document.getElementById('calc-result').classList.remove('show'); switchSheetType('income'); toggleSheet(true); }
+function openSheetForEdit(itemId) { if(isSelectMode) return; const item = (monthsData[plannerMonth]||[]).find(i => i.id === itemId); if(!item) return; document.getElementById('editing-id').value=item.id; document.getElementById('form-name').value=item.name; document.getElementById('form-amount').value=item.amount.toLocaleString(); document.getElementById('form-total-debt').value=item.totalDebt>0?item.totalDebt.toLocaleString():''; document.getElementById('btn-delete').style.display='block'; setOccurrence(item.occurrence||'recurring'); switchSheetType(item.type, item.cat); toggleSheet(true); }
+function switchSheetType(type, preselectCat=null) { currentSheetType=type; document.querySelectorAll('.sheet-seg-btn').forEach(btn => { btn.classList.remove('active','income','expense','debt','savings'); if(btn.getAttribute('data-i18n')===type) btn.classList.add('active',type); }); document.getElementById('amount-label').innerText = type==='debt'?(currentLang==='th'?'ยอดผ่อนต่อเดือน':'Monthly Payment'):i18n[currentLang].amount; document.getElementById('installment-group').style.display = type==='debt'?'block':'none'; document.getElementById('tg-installment').style.display = type==='debt'?'block':'none'; if(type!=='debt'&&currentOccurrence==='installment') setOccurrence('recurring'); selectedCategory = preselectCat||categories[type][0]; document.getElementById('chips-container').innerHTML = categories[type].map(cat => `<div class="chip ${cat===selectedCategory?'active':''}" onclick="selectChip(this,'${cat}')">${cat}</div>`).join(''); if(!document.getElementById('form-name').value) document.getElementById('form-name').value=selectedCategory; }
+function selectChip(elem, cat) { elem.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); elem.classList.add('active'); selectedCategory=cat; document.getElementById('form-name').value=cat; }
+function setOccurrence(type) { currentOccurrence=type; document.querySelectorAll('.toggle-card').forEach(c => c.classList.remove('active')); document.getElementById('tg-'+type).classList.add('active'); }
+
+function calcInstallment() {
+  const p = parseNumber(document.getElementById('form-total-debt').value); 
+  const n = parseInt(document.getElementById('form-months').value) || 0; 
+  const r = parseFloat(document.getElementById('form-interest').value) || 0; 
+  
+  if (p > 0 && n > 0) {
+    let monthly = 0;
+    if (r === 0) {
+      monthly = p / n; 
+    } else {
+      let i = (r / 100) / 12; 
+      monthly = p * i * Math.pow(1 + i, n) / (Math.pow(1 + i, n) - 1);
+    }
+    let totalPay = monthly * n; 
+    let totalInterest = totalPay - p; 
+    
+    document.getElementById('calc-monthly').innerHTML = 
+      `${Math.round(monthly).toLocaleString()} ฿ /เดือน` + 
+      `<br><span style="font-size:12px; color:#636366; font-weight:400;">ดอกเบี้ยรวม: ${Math.round(totalInterest).toLocaleString()} ฿</span>`;
+    document.getElementById('form-amount').value = Math.round(monthly).toLocaleString();
+    document.getElementById('calc-result').classList.add('show');
+  } else {
+    document.getElementById('calc-result').classList.remove('show');
+  }
+}
+
+async function saveItem() {
+  const fullId = document.getElementById('editing-id').value; 
+  const realId = fullId ? fullId.split('_')[0] : null; 
+  const name = document.getElementById('form-name').value.trim(); 
+  const amount = parseNumber(document.getElementById('form-amount').value); 
+  const totalDebt = parseNumber(document.getElementById('form-total-debt').value);
+  
+  if(!name || amount <= 0){alert('กรุณากรอกชื่อรายการและยอดเงินให้ถูกต้อง');return;}
+  
+  let targetMonth = (currentOccurrence === 'recurring') ? currentMonth : plannerMonth;
+  const payload = { month_key: targetMonth, name, amount, type: currentSheetType, category: selectedCategory, occurrence: currentOccurrence, total_debt: totalDebt };
+  
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession(); 
+    payload.user_id = session?.user?.id || null; 
+    if(realId) { 
+      const { error } = await supabaseClient.from('transactions').update(payload).eq('id', realId); 
+      if(error) throw error; 
+    } else { 
+      const { error } = await supabaseClient.from('transactions').insert(payload); 
+      if(error) throw error; 
+    }
+    toggleSheet(false); 
+    fetchTransactions();
+  } catch (error) {
+    alert("เกิดข้อผิดพลาดในการบันทึก: " + error.message);
+  }
+}
+function toggleSheet(show) { document.getElementById('sheet').classList.toggle('active',show); document.getElementById('overlay').classList.toggle('active',show); }
+function closeSheet() { toggleSheet(false); }
+function formatPriceInput(elem) { let val=parseNumber(elem.value); elem.value=val.toLocaleString(); updateScenario(); }
+function switchScenarioType(type) { currentScenarioType=type; document.querySelectorAll('.sc-chip').forEach(c=>c.classList.remove('active')); event.currentTarget.classList.add('active'); const lp=document.getElementById('sc-label-price'), mu=document.getElementById('sc-month-ui'), iu=document.getElementById('sc-interest-ui'), nl=document.getElementById('sc-new-label'); if(type==='buy'){lp.innerText=i18n[currentLang].simPriceLabel;mu.style.display='block';iu.style.display='block';document.getElementById('sc-price').value='30,000';nl.innerText=i18n[currentLang].afterSimBal;} else if(type==='payoff'){lp.innerText=i18n[currentLang].simPayoff;mu.style.display='none';iu.style.display='none';document.getElementById('sc-price').value='50,000';nl.innerText=i18n[currentLang].simPayoff;} else {lp.innerText=i18n[currentLang].simAdjust;mu.style.display='none';iu.style.display='none';document.getElementById('sc-price').value='2,000';nl.innerText=i18n[currentLang].simAdjust;} updateScenario(); }
+function updateScenario() { const cBal=getTotals(currentMonth).in_-getTotals(currentMonth).out-getTotals(currentMonth).debt-getTotals(currentMonth).save; document.getElementById('sc-current-bal').innerText=cBal.toLocaleString()+' ฿'; const price=parseNumber(document.getElementById('sc-price').value); const months=parseInt(document.getElementById('sc-month-slider').value); const interest=parseInt(document.getElementById('sc-interest-slider').value); document.getElementById('sc-month-label').innerText=months+(currentLang==='th'?' เดือน':' Months'); document.getElementById('sc-interest-label').innerText=interest+'%'; let mImp=0, bD=[], aD=[]; for(let i=0;i<4;i++){ let bB=getProjectedCash(i); bD.push(bB); if(currentScenarioType==='buy'){ let i_r=(interest/100)/12; mImp=interest===0?price/months:(price*i_r*Math.pow(1+i_r,months))/(Math.pow(1+i_r,months)-1); aD.push(bB-mImp); } else if(currentScenarioType==='payoff'){ mImp=8500; aD.push(bB+mImp); } else { mImp=price; aD.push(bB+mImp); } } let allV=[...bD,...aD]; let minV=Math.min(...allV); let maxV=Math.max(...allV); let range=maxV-minV||1; let pB="M0,"+(90-((bD[0]-minV)/range)*80); let pA="M0,"+(90-((aD[0]-minV)/range)*80); let lH=""; for(let i=0;i<4;i++){ let x=i*100; let yB=90-((bD[i]-minV)/range)*80; let yA=90-((aD[i]-minV)/range)*80; if(i>0){pB+=` L${x},${yB}`;pA+=` L${x},${yA}`;} let lYB=yB+12; let lYA=yA-5; if(Math.abs(lYB-lYA)<12){lYB=yB+15;lYA=yA-15;} lH+=`<text x="${x}" y="${lYA}" class="chart-val" text-anchor="middle">${Math.round(aD[i]).toLocaleString()}</text>`; lH+=`<text x="${x}" y="${lYB}" class="chart-val muted" text-anchor="middle">${Math.round(bD[i]).toLocaleString()}</text>`; } document.getElementById('chart-lines').innerHTML=`<path d="${pB}" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-dasharray="4" /><path d="${pA}" fill="none" stroke="#ffffff" stroke-width="3" />`; document.getElementById('chart-labels').innerHTML=lH; const nBal=currentScenarioType==='buy'?cBal-mImp:cBal+mImp; const nE=document.getElementById('sc-new-bal'); nE.innerText=Math.round(nBal).toLocaleString()+' ฿'; if(nBal<0)nE.style.color='#FF453A'; else if(nBal<2000)nE.style.color='#FF9F0A'; else nE.style.color='#30D158'; }
+
+async function confirmScenario() { 
+  const price=parseNumber(document.getElementById('sc-price').value); const months=parseInt(document.getElementById('sc-month-slider').value); const interest=parseInt(document.getElementById('sc-interest-slider').value); 
+  let payload={}; 
+  if(currentScenarioType==='buy'){let i=(interest/100)/12;let m=interest===0?price/months:(price*i*Math.pow(1+i,months))/(Math.pow(1+i,months)-1);payload={name:'ผ่อนของ (Scenario)',amount:Math.round(m),type:'debt',category:'ผ่อนของ',total_debt:price,occurrence:'installment'};} 
+  else if(currentScenarioType==='payoff'){payload={name:'เงินอิสระ (ปิดหนี้)',amount:8500,type:'income',category:'ปิดหนี้',occurrence:'recurring',total_debt:0};} 
+  else {payload={name:'งบประหยัด (Scenario)',amount:price,type:'savings',category:'ปรับงบ',occurrence:'recurring',total_debt:0};} 
+  payload.month_key = currentMonth;
+  const { data: { session } } = await supabaseClient.auth.getSession(); payload.user_id = session?.user?.id || null; 
+  await supabaseClient.from('transactions').insert(payload); 
+  switchScreen('planner', { currentTarget: document.querySelectorAll('.nav-btn')[1] }); fetchTransactions(); 
+}
+function toggleDarkMode() { document.body.classList.toggle('dark-mode'); const isD=document.body.classList.contains('dark-mode'); document.getElementById('dark-mode-toggle').style.background=isD?'#30D158':'#d1d1d6'; document.getElementById('dark-knob').style.transform=isD?'translateX(20px)':'translateX(0)'; }
