@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CashForecast Pro</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0A84FF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Splash Screen -->
+<div class="splash" id="splash">
+  <div class="splash-logo">CF</div>
+  <h1>CashForecast</h1>
+  <p id="splash-slogan">วางแผนล่วงหน้า ตัดสินใจอย่างมั่นใจ</p>
+</div>
+
+<div class="app-container" id="app">
+  
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="header">
+      <h1 data-i18n="overview">ภาพรวม</h1>
+      <div class="header-actions">
+        <button class="header-btn" id="lang-btn" onclick="toggleLang()">TH</button>
+        <div class="profile-icon" onclick="switchScreen('profile', event)">👤</div>
+      </div>
+    </div>
+    <div class="hero">
+      <p data-i18n="freeCash">เงินอิสระที่ใช้ได้จริง</p>
+      <h2 id="home-free-cash">0<span>฿</span></h2>
+      <div id="home-badge" class="badge green" data-i18n="safe">สบายๆ ยังพอผ่อนของได้</div>
+    </div>
+    
+    <div class="glass-card health-card">
+      <div class="ring-container">
+        <svg class="ring-svg" viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="50"></circle>
+          <circle class="ring-fg" id="ring-fg" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16"></circle>
+        </svg>
+        <div class="ring-score">
+          <h2 id="score-num">0</h2>
+          <p data-i18n="healthScore">สุขภาพการเงิน</p>
+        </div>
+      </div>
+      <div class="health-criteria">
+        <strong data-i18n="criteriaTitle">เกณฑ์การให้คะแนน</strong><br>
+        • <span data-i18n="crit1">50 คะแนน: กระแสเงินสดเป็นบวก</span><br>
+        • <span data-i18n="crit2">30 คะแนน: ออม ≥ 10% ของรายได้</span><br>
+        • <span data-i18n="crit3">20 คะแนน: หนี้สิน ≤ 20% ของรายได้</span>
+      </div>
+    </div>
+
+    <div class="glass-card chart-card">
+      <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;" data-i18n="cashFlow4m">กระแสเงินสดล่วงหน้า 4 เดือน</p>
+      <div class="chart-bars" id="home-chart"></div>
+    </div>
+  </div>
+
+  <!-- PLANNER -->
+  <div class="screen" id="screen-planner">
+    <div class="header">
+      <h1 id="month-title">พฤศจิกายน</h1>
+      <div class="header-actions">
+        <button class="header-btn" onclick="navigateMonth(-1)">‹</button>
+        <button class="header-btn" onclick="navigateMonth(1)">›</button>
+        <button class="header-btn" id="edit-btn" onclick="toggleSelectMode()" data-i18n="select">เลือก</button>
+      </div>
+    </div>
+    <div class="glass-card summary-card">
+      <div class="summary-row">
+        <span class="summary-label"><span class="dot green"></span> <span data-i18n="incTotal">รายรับรวม</span></span>
+        <span class="summary-value in" style="color: #30D158;" id="total-income">0 ฿</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label"><span class="dot orange"></span> <span data-i18n="expTotal">รายจ่ายคงที่</span></span>
+        <span class="summary-value out" style="color: #FF9F0A;"><span id="total-expense">0 ฿</span><span class="summary-pct" id="pct-expense"></span></span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label"><span class="dot red"></span> <span data-i18n="debtTotal">หนี้สิน/ผ่อน</span></span>
+        <span class="summary-value debt" style="color: #FF453A;"><span id="total-debt">0 ฿</span><span class="summary-pct" id="pct-debt"></span></span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label"><span class="dot purple"></span> <span data-i18n="saveTotal">เงินเก็บ/ลงทุน</span></span>
+        <span class="summary-value save" style="color: #BF5AF2;"><span id="total-save">0 ฿</span><span class="summary-pct" id="pct-save"></span></span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label" style="font-weight: 600;" data-i18n="freeCashTotal">เงินอิสระที่ใช้ได้จริง</span>
+        <span class="summary-total" style="color: #0A84FF;" id="total-balance">0 ฿</span>
+      </div>
+    </div>
+    <div id="data-container"></div>
+  </div>
+
+  <button class="fab" id="fab-btn" onclick="openSheetForAdd()">+</button>
+  
+  <div class="delete-bar" id="delete-bar">
+    <button class="btn-delete-multi" onclick="deleteSelected()"><span data-i18n="deleteSelected">ลบรายการที่เลือก</span> (<span id="select-count">0</span>)</button>
+  </div>
+
+  <!-- BOTTOM SHEET -->
+  <div class="overlay" id="overlay" onclick="closeSheet()"></div>
+  <div class="bottom-sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-segmented">
+      <button class="sheet-seg-btn active income" onclick="switchSheetType('income')" data-i18n="income">รายรับ</button>
+      <button class="sheet-seg-btn expense" onclick="switchSheetType('expense')" data-i18n="expense">รายจ่าย</button>
+      <button class="sheet-seg-btn debt" onclick="switchSheetType('debt')" data-i18n="debt">หนี้สิน</button>
+      <button class="sheet-seg-btn savings" onclick="switchSheetType('savings')" data-i18n="savings">เงินเก็บ</button>
+    </div>
+    <input type="hidden" id="editing-id">
+    <div class="form-group">
+      <label class="form-label" data-i18n="itemName">ชื่อรายการ</label>
+      <input type="text" class="input-field" id="form-name" placeholder="เช่น เงินเดือน, ค่าเช่า">
+    </div>
+    <div class="form-group" id="category-group">
+      <label class="form-label" data-i18n="catBank">หมวดหมู่ / ธนาคาร</label>
+      <div class="chips-row" id="chips-container"></div>
+    </div>
+    <div class="form-group" id="installment-group" style="display:none;">
+      <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+        <div style="flex: 1;">
+          <label class="form-label" data-i18n="totalPrice">ยอดสินค้ารวม</label>
+          <input type="text" class="input-field" inputmode="numeric" id="form-total-debt" placeholder="30,000" oninput="calcInstallment()">
+        </div>
+        <div style="flex: 1;">
+          <label class="form-label" data-i18n="months">เดือน</label>
+          <input type="number" class="input-field" id="form-months" placeholder="10" oninput="calcInstallment()">
+        </div>
+      </div>
+      <label class="form-label" data-i18n="interestRate">ดอกเบี้ย (%) ต่อปี</label>
+      <input type="number" class="input-field" id="form-interest" placeholder="0" oninput="calcInstallment()">
+      <div class="calc-result" id="calc-result">
+        <p data-i18n="monthlyCalc">ยอดผ่อนต่อเดือน (คำนวณอัตโนมัติ)</p>
+        <h4 id="calc-monthly">0 ฿</h4>
+      </div>
+    </div>
+    <div class="form-group" id="amount-group">
+      <label class="form-label" id="amount-label" data-i18n="amount">ยอดเงิน</label>
+      <input type="text" class="input-field" inputmode="numeric" id="form-amount" placeholder="0" style="font-size: 24px; font-weight: 700;">
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="occurrenceType">ประเภทการเกิดขึ้น</label>
+      <div class="toggle-group">
+        <div class="toggle-card active" id="tg-recurring" onclick="setOccurrence('recurring')" data-i18n="recurring">ทุกเดือน</div>
+        <div class="toggle-card" id="tg-installment" onclick="setOccurrence('installment')" style="display:none;" data-i18n="installment">ผ่อนสินค้า</div>
+        <div class="toggle-card" id="tg-once" onclick="setOccurrence('once')" data-i18n="once">ครั้งเดียว</div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveItem()" data-i18n="save">บันทึก</button>
+    <button class="btn-danger" id="btn-delete" onclick="deleteSingleItem()" data-i18n="deleteItem">ลบรายการนี้</button>
+  </div>
+
+  <!-- SCENARIO -->
+  <div class="screen screen-scenario" id="screen-scenario">
+    <div class="header">
+      <div>
+        <h1 data-i18n="scenario">Scenario</h1>
+        <p data-i18n="scenarioDesc">จำลองสถานการณ์ก่อนตัดสินใจ</p>
+      </div>
+    </div>
+    <div class="scenario-chips">
+      <div class="sc-chip active" onclick="switchScenarioType('buy')" data-i18n="simBuy">ซื้อของผ่อน</div>
+      <div class="sc-chip" onclick="switchScenarioType('payoff')" data-i18n="simPayoff">ปิดหนี้ก้อนนี้</div>
+      <div class="sc-chip" onclick="switchScenarioType('adjust')" data-i18n="simAdjust">ปรับงบประมาณ</div>
+    </div>
+    
+    <div class="sim-card">
+      <p id="sc-label-price" data-i18n="simPriceLabel">ราคาของที่จะผ่อน</p>
+      <input type="text" class="sim-input" id="sc-price" value="30,000" oninput="formatPriceInput(this)">
+      
+      <div id="sc-month-ui">
+        <div class="slider-container">
+          <span data-i18n="months">จำนวนเดือน</span>
+          <span id="sc-month-label">10 เดือน</span>
+        </div>
+        <input type="range" min="1" max="24" value="10" class="slider" id="sc-month-slider" oninput="updateScenario()">
+      </div>
+
+      <div id="sc-interest-ui">
+        <div class="slider-container">
+          <span data-i18n="interestRate">ดอกเบี้ย (%) ต่อปี</span>
+          <span id="sc-interest-label">0%</span>
+        </div>
+        <input type="range" min="0" max="20" value="0" class="slider" id="sc-interest-slider" oninput="updateScenario()">
+      </div>
+    </div>
+
+    <div class="trend-chart">
+      <p style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 10px;" data-i18n="trend4m">เทียบกระแสเงินสด 4 เดือนข้างหน้า</p>
+      <svg id="trend-svg" viewBox="0 0 300 100" preserveAspectRatio="none">
+        <g id="chart-lines"></g>
+        <g id="chart-labels"></g>
+      </svg>
+      <div class="trend-legend">
+        <span><span class="legend-dot" style="background: rgba(255,255,255,0.3);"></span> <span data-i18n="beforeSim">ก่อนผ่อน</span></span>
+        <span><span class="legend-dot" style="background: #ffffff;"></span> <span data-i18n="afterSim">หลังผ่อน</span></span>
+      </div>
+    </div>
+
+    <div class="compare-row">
+      <div class="compare-card">
+        <p data-i18n="currentBal">เงินอิสระปัจจุบัน</p>
+        <h3 id="sc-current-bal" style="color: #30D158;">0 ฿</h3>
+      </div>
+      <div class="arrow">➔</div>
+      <div class="compare-card">
+        <p id="sc-new-label" data-i18n="afterSimBal">หลังผ่อนของ (ต่อเดือน)</p>
+        <h3 id="sc-new-bal" style="color: #FF9F0A;">0 ฿</h3>
+      </div>
+    </div>
+
+    <div class="actions-row">
+      <button class="btn-ghost" onclick="switchScreen('planner', event)" data-i18n="cancel">ยกเลิก</button>
+      <button class="btn-solid-white" onclick="confirmScenario()" data-i18n="saveToReal">บันทึกเป็นจริง</button>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="screen" id="screen-profile">
+    <div class="header">
+      <button class="back-btn" onclick="switchScreen('home', event)">‹ <span data-i18n="back">ย้อนกลับ</span></button>
+    </div>
+    <div class="profile-header">
+      <div class="profile-avatar">👤</div>
+      <p class="profile-name" data-i18n="guestUser">ผู้ใช้ทั่วไป</p>
+      <p class="profile-email" data-i18n="notLoggedIn">ยังไม่ได้เข้าสู่ระบบ</p>
+    </div>
+    <div class="glass-card" style="padding: 24px; margin-bottom: 24px;">
+      <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; text-align: center;" data-i18n="loginPrompt">เข้าสู่ระบบเพื่อซิงค์ข้อมูลการวางแผนการเงินของคุณ</p>
+      <button class="auth-btn apple"> Sign in with Apple</button>
+      <button class="auth-btn google"> Sign in with Google</button>
+    </div>
+    <div class="glass-card" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleDarkMode()">
+        <span style="font-size: 16px; font-weight: 500;" data-i18n="darkMode">โหมดมืด (Dark Mode)</span>
+        <div id="dark-mode-toggle" style="width: 50px; height: 30px; background: #d1d1d6; border-radius: 100px; position: relative; transition: background 0.2s;">
+          <div style="position: absolute; top: 2px; left: 2px; width: 26px; height: 26px; background: white; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" id="dark-knob"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="bottom-nav" id="bottom-nav">
+    <button class="nav-btn active" onclick="switchScreen('home', event)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l-10 9h3v8h6v-6h2v6h6v-8h3z"/></svg><span data-i18n="home">Home</span></button>
+    <button class="nav-btn" onclick="switchScreen('planner', event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2h-4M9 3v4M9 3h6M9 7h6M9 7v4M15 3v4M15 7v4"/></svg><span data-i18n="planner">Planner</span></button>
+    <button class="nav-btn" onclick="switchScreen('scenario', event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8L19 13M17.8 6.2L19 5M14.2 6.2L13 5M14.2 11.8L13 13M4 22l6-6M4 22h6M4 22v-6"/></svg><span data-i18n="scenario">Scenario</span></button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').then(registration => {
+        console.log('ServiceWorker registration successful');
+      }).catch(err => {
+        console.log('ServiceWorker registration failed: ', err);
+      });
+    });
+  }
+</script>
+</body>
+</html>
