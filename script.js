@@ -37,7 +37,7 @@ function generateMonths() {
 }
 generateMonths();
 
-let monthsData = {}; // Empty Data
+let monthsData = {}; 
 let currentSheetType = 'income', selectedCategory = '', currentOccurrence = 'recurring', isSelectMode = false, selectedItems = new Set(), currentScenarioType = 'buy', plannerMonth = "";
 
 // --- AUTH & ONBOARDING ---
@@ -52,6 +52,7 @@ function continueAsGuest() {
   document.querySelector('.nav-btn').classList.add('active');
   plannerMonth = currentMonth;
   applyLang();
+  fetchTransactions(); // ดึงข้อมูลเก่ามาโชว์
 }
 
 async function checkAuthState() {
@@ -80,7 +81,13 @@ async function fetchTransactions() {
   data.forEach(item => {
     if (!monthsData[item.month_key]) monthsData[item.month_key] = [];
     monthsData[item.month_key].push({
-      id: item.id, name: item.name, amount: parseFloat(item.amount), type: item.type, occurrence: item.occurrence, cat: item.category, totalDebt: parseFloat(item.total_debt || 0)
+      id: item.id, 
+      name: item.name, 
+      amount: parseFloat(item.amount), 
+      type: item.type, // ตอนนี้ type จะเป็น income, expense, debt, savings
+      occurrence: item.occurrence, 
+      cat: item.category, 
+      totalDebt: parseFloat(item.total_debt || 0)
     });
   });
   renderHome(); renderPlanner();
@@ -88,10 +95,16 @@ async function fetchTransactions() {
 
 function parseNumber(str) { if (!str) return 0; return parseInt(str.toString().replace(/[^0-9]/g, '')) || 0; }
 
+// แก้ไขให้รองรับ type แบบเต็ม (income, expense, debt, savings)
 function getTotals(month) {
   if (!monthsData[month]) return { in_: 0, out: 0, debt: 0, save: 0 };
   let t = { in_: 0, out: 0, debt: 0, save: 0 };
-  monthsData[month].forEach(item => { if(item.type==='in') t.in_+=item.amount; else if(item.type==='out') t.out+=item.amount; else if(item.type==='debt') t.debt+=item.amount; else if(item.type==='save') t.save+=item.amount; });
+  monthsData[month].forEach(item => { 
+    if(item.type==='income') t.in_+=item.amount; 
+    else if(item.type==='expense') t.out+=item.amount; 
+    else if(item.type==='debt') t.debt+=item.amount; 
+    else if(item.type==='savings') t.save+=item.amount; 
+  });
   return t;
 }
 function getProjectedCash(i) { return getTotals(monthOrder[i]).in_ - getTotals(monthOrder[i]).out - getTotals(monthOrder[i]).debt - getTotals(monthOrder[i]).save; }
@@ -143,17 +156,25 @@ function renderPlanner() {
   let html = '';
   if (data.length === 0) html = `<div class="glass-card" style="padding: 32px 24px; text-align: center; margin-top: 24px;"><h3 style="font-size: 18px;">No Items</h3><p style="font-size: 14px; color: var(--text-muted);">Tap + to start planning</p></div>`;
 
-  const types = [{key:'in',title:i18n[currentLang].income,class:'in'},{key:'out',title:i18n[currentLang].expense,class:'out'},{key:'debt',title:i18n[currentLang].debt,class:'debt'},{key:'save',title:i18n[currentLang].savings,class:'save'}];
+  // แก้ไขให้ค้นหา key แบบเต็ม (income, expense, debt, savings)
+  const types = [
+    { key: 'income', title: i18n[currentLang].income, class: 'in' }, 
+    { key: 'expense', title: i18n[currentLang].expense, class: 'out' },
+    { key: 'debt', title: i18n[currentLang].debt, class: 'debt' }, 
+    { key: 'savings', title: i18n[currentLang].savings, class: 'save' }
+  ];
+  
   types.forEach(type => {
     const items = data.filter(item => item.type === type.key);
     if (items.length > 0) {
       html += `<div class="section-title">${type.title}</div>`;
       items.forEach(item => {
-        let icon = type.key === 'in' ? '💰' : type.key === 'out' ? '🏠' : type.key === 'debt' ? '💳' : '🐷';
+        // แก้ไขให้โชว์ไอคอนตาม type แบบเต็ม
+        let icon = type.key === 'income' ? '💰' : type.key === 'expense' ? '🏠' : type.key === 'debt' ? '💳' : '🐷';
         let tagHtml = `<span class="tag ${item.occurrence}">${i18n[currentLang][item.occurrence]}</span>`;
         let subText = item.cat || 'General'; if (item.totalDebt > 0) subText += ` | ${currentLang==='th'?'เหลือ':'Left'} ${item.totalDebt.toLocaleString()} ฿`;
         let checkboxHtml = isSelectMode ? `<div class="custom-checkbox ${selectedItems.has(item.id) ? 'checked' : ''}" onclick="event.stopPropagation(); toggleSelect('${item.id}')"></div>` : '';
-        html += `<div class="list-item" onclick="openSheetForEdit('${item.id}')">${checkboxHtml}<div class="list-left" style="${isSelectMode?'margin-left:8px;':''}"><div class="icon-circle">${icon}</div><div class="list-text"><p>${item.name} ${tagHtml}</p><span class="sub">${subText}</span></div></div><div class="amount ${type.class}">${type.key === 'in' ? '+' : '-'}${item.amount.toLocaleString()} ฿</div></div>`;
+        html += `<div class="list-item" onclick="openSheetForEdit('${item.id}')">${checkboxHtml}<div class="list-left" style="${isSelectMode?'margin-left:8px;':''}"><div class="icon-circle">${icon}</div><div class="list-text"><p>${item.name} ${tagHtml}</p><span class="sub">${subText}</span></div></div><div class="amount ${type.class}">${type.key === 'income' ? '+' : '-'}${item.amount.toLocaleString()} ฿</div></div>`;
       });
     }
   });
@@ -218,12 +239,13 @@ function closeSheet() { toggleSheet(false); }
 function formatPriceInput(elem) { let val=parseNumber(elem.value); elem.value=val.toLocaleString(); updateScenario(); }
 function switchScenarioType(type) { currentScenarioType=type; document.querySelectorAll('.sc-chip').forEach(c=>c.classList.remove('active')); event.currentTarget.classList.add('active'); const lp=document.getElementById('sc-label-price'), mu=document.getElementById('sc-month-ui'), iu=document.getElementById('sc-interest-ui'), nl=document.getElementById('sc-new-label'); if(type==='buy'){lp.innerText=i18n[currentLang].simPriceLabel;mu.style.display='block';iu.style.display='block';document.getElementById('sc-price').value='30,000';nl.innerText=i18n[currentLang].afterSimBal;} else if(type==='payoff'){lp.innerText=i18n[currentLang].simPayoff;mu.style.display='none';iu.style.display='none';document.getElementById('sc-price').value='50,000';nl.innerText=i18n[currentLang].simPayoff;} else {lp.innerText=i18n[currentLang].simAdjust;mu.style.display='none';iu.style.display='none';document.getElementById('sc-price').value='2,000';nl.innerText=i18n[currentLang].simAdjust;} updateScenario(); }
 function updateScenario() { const cBal=getTotals(currentMonth).in_-getTotals(currentMonth).out-getTotals(currentMonth).debt-getTotals(currentMonth).save; document.getElementById('sc-current-bal').innerText=cBal.toLocaleString()+' ฿'; const price=parseNumber(document.getElementById('sc-price').value); const months=parseInt(document.getElementById('sc-month-slider').value); const interest=parseInt(document.getElementById('sc-interest-slider').value); document.getElementById('sc-month-label').innerText=months+(currentLang==='th'?' เดือน':' Months'); document.getElementById('sc-interest-label').innerText=interest+'%'; let mImp=0, bD=[], aD=[]; for(let i=0;i<4;i++){ let bB=getProjectedCash(i); bD.push(bB); if(currentScenarioType==='buy'){ let i_r=(interest/100)/12; mImp=interest===0?price/months:(price*i_r*Math.pow(1+i_r,months))/(Math.pow(1+i_r,months)-1); aD.push(bB-mImp); } else if(currentScenarioType==='payoff'){ mImp=8500; aD.push(bB+mImp); } else { mImp=price; aD.push(bB+mImp); } } let allV=[...bD,...aD]; let minV=Math.min(...allV); let maxV=Math.max(...allV); let range=maxV-minV||1; let pB="M0,"+(90-((bD[0]-minV)/range)*80); let pA="M0,"+(90-((aD[0]-minV)/range)*80); let lH=""; for(let i=0;i<4;i++){ let x=i*100; let yB=90-((bD[i]-minV)/range)*80; let yA=90-((aD[i]-minV)/range)*80; if(i>0){pB+=` L${x},${yB}`;pA+=` L${x},${yA}`;} let lYB=yB+12; let lYA=yA-5; if(Math.abs(lYB-lYA)<12){lYB=yB+15;lYA=yA-15;} lH+=`<text x="${x}" y="${lYA}" class="chart-val" text-anchor="middle">${Math.round(aD[i]).toLocaleString()}</text>`; lH+=`<text x="${x}" y="${lYB}" class="chart-val muted" text-anchor="middle">${Math.round(bD[i]).toLocaleString()}</text>`; } document.getElementById('chart-lines').innerHTML=`<path d="${pB}" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-dasharray="4" /><path d="${pA}" fill="none" stroke="#ffffff" stroke-width="3" />`; document.getElementById('chart-labels').innerHTML=lH; const nBal=currentScenarioType==='buy'?cBal-mImp:cBal+mImp; const nE=document.getElementById('sc-new-bal'); nE.innerText=Math.round(nBal).toLocaleString()+' ฿'; if(nBal<0)nE.style.color='#FF453A'; else if(nBal<2000)nE.style.color='#FF9F0A'; else nE.style.color='#30D158'; }
+
 async function confirmScenario() { 
   const price=parseNumber(document.getElementById('sc-price').value); const months=parseInt(document.getElementById('sc-month-slider').value); const interest=parseInt(document.getElementById('sc-interest-slider').value); 
   let payload={}; 
   if(currentScenarioType==='buy'){let i=(interest/100)/12;let m=interest===0?price/months:(price*i*Math.pow(1+i,months))/(Math.pow(1+i,months)-1);payload={name:'ผ่อนของ (Scenario)',amount:Math.round(m),type:'debt',category:'ผ่อนของ',total_debt:price,occurrence:'installment'};} 
-  else if(currentScenarioType==='payoff'){payload={name:'เงินอิสระ (ปิดหนี้)',amount:8500,type:'in',category:'ปิดหนี้',occurrence:'recurring',total_debt:0};} 
-  else {payload={name:'งบประหยัด (Scenario)',amount:price,type:'save',category:'ปรับงบ',occurrence:'recurring',total_debt:0};} 
+  else if(currentScenarioType==='payoff'){payload={name:'เงินอิสระ (ปิดหนี้)',amount:8500,type:'income',category:'ปิดหนี้',occurrence:'recurring',total_debt:0};} 
+  else {payload={name:'งบประหยัด (Scenario)',amount:price,type:'savings',category:'ปรับงบ',occurrence:'recurring',total_debt:0};} 
   payload.month_key = plannerMonth;
   const { data: { session } } = await supabaseClient.auth.getSession(); payload.user_id = session?.user?.id || null; 
   await supabaseClient.from('transactions').insert(payload); 
