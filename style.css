@@ -108,8 +108,22 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helve
 .delete-bar.active { transform: translateY(0); }
 .btn-delete-multi { width: 100%; padding: 16px; background: #FF453A; color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; }
 
-.fab { position: fixed; bottom: 40px; right: 24px; width: 56px; height: 56px; background: #0A84FF; color: white; border: none; border-radius: 50%; box-shadow: 0 8px 16px rgba(10, 132, 255, 0.3); font-size: 28px; cursor: pointer; z-index: 50; transition: transform 0.1s; }
-.fab:active { transform: scale(0.9); }
+.fab { 
+  position: fixed; 
+  bottom: 110px; /* เปลี่ยนจาก 40px เป็น 110px */
+  right: 24px; 
+  width: 56px; 
+  height: 56px; 
+  background: #0A84FF; 
+  color: white; 
+  border: none; 
+  border-radius: 50%; 
+  box-shadow: 0 8px 16px rgba(10, 132, 255, 0.3); 
+  font-size: 28px; 
+  cursor: pointer; 
+  z-index: 60; /* เพิ่มจาก 50 เป็น 60 */
+  transition: transform 0.1s; 
+}
 
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
 .overlay.active { opacity: 1; pointer-events: auto; }
