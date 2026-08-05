@@ -21,8 +21,8 @@
   <p id="splash-slogan" style="font-size: 14px; color: #636366; opacity: 1;">วางแผนล่วงหน้า ตัดสินใจอย่างมั่นใจ</p>
 </div>
 
-<!-- Onboarding / Auth Screen (ปรับให้ขนาดเท่ากันแบบ iOS) -->
-<div id="screen-onboarding" style="background: #F2F2F7; color: #1c1c1e; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; position: fixed; inset: 0; z-index: 999;">
+<!-- Onboarding / Auth Screen (สไตล์ iOS แบบเลื่อนได้ ไม่โดนคีย์บอร์ดบัง) -->
+<div id="screen-onboarding" style="background: #F2F2F7; color: #1c1c1e; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 60px 24px 24px 24px; position: fixed; inset: 0; z-index: 999; overflow-y: auto;">
   <img src="logo.png" alt="Logo" style="width: 90px; height: 90px; margin-bottom: 16px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
   <h1 style="font-size: 28px; margin-bottom: 8px; font-weight: 700;">CashForecast</h1>
   <p style="font-size: 14px; color: #636366; margin-bottom: 40px; text-align: center;">วางแผนล่วงหน้า ตัดสินใจอย่างมั่นใจ</p>
@@ -199,7 +199,8 @@
   </div>
 </div>
 
-<script src="script.js"></script>
+<!-- เพิ่ม ?v=2 เพื่อบังคับให้เบราว์เซอร์โหลดไฟล์ JavaScript ตัวใหม่เสมอ -->
+<script src="script.js?v=2"></script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
