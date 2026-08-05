@@ -27,7 +27,7 @@ const useBE = true;
 function generateMonths() {
   let now = new Date();
   monthOrder = [];
-  for(let i=0; i<6; i++) { // 6 เดือนล่วงหน้า
+  for(let i=0; i<6; i++) {
     let d = new Date(now.getFullYear(), now.getMonth() + i, 1);
     let year = useBE ? d.getFullYear() + 543 : d.getFullYear();
     let mName = currentLang === 'th' ? monthNamesTh[d.getMonth()] : monthNamesEn[d.getMonth()];
@@ -37,8 +37,8 @@ function generateMonths() {
 }
 generateMonths();
 
-let monthsData = {};
-// ซ่อน Splash Screen หลังผ่านไป 2 วินาที
+let monthsData = {}; 
+let isGuest = false; // เพิ่มตัวแปรเช็คสถานะ Guest
 setTimeout(() => { document.getElementById('splash').classList.add('hide'); }, 2000); 
 let currentSheetType = 'income', selectedCategory = '', currentOccurrence = 'recurring', isSelectMode = false, selectedItems = new Set(), currentScenarioType = 'buy', plannerMonth = "";
 
@@ -70,6 +70,7 @@ async function handleAuth(type) {
 
 async function handleLogout() {
   await supabaseClient.auth.signOut();
+  isGuest = false; // เปลี่ยนสถานะกลับ
   document.getElementById('profile-name').innerText = i18n[currentLang].guestUser;
   document.getElementById('profile-email').innerText = i18n[currentLang].notLoggedIn;
   document.getElementById('btn-logout').style.display = 'none';
@@ -80,17 +81,20 @@ async function handleLogout() {
 }
 
 function continueAsGuest() {
+  isGuest = true; // ตั้งค่าว่าเป็น Guest
+  monthsData = {}; // ล้างข้อมูลเดิมในหน่วยความจำ
   document.getElementById('screen-onboarding').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.querySelector('.nav-btn').classList.add('active');
   plannerMonth = currentMonth;
   applyLang();
-  fetchTransactions();
+  renderHome(); renderPlanner(); // โหลดหน้าแอปเปล่าๆ
 }
 
 async function checkAuthState() {
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) {
+    isGuest = false;
     document.getElementById('screen-onboarding').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     document.querySelector('.nav-btn').classList.add('active');
@@ -102,6 +106,7 @@ async function checkAuthState() {
     applyLang();
     fetchTransactions();
   } else {
+    isGuest = false;
     document.getElementById('screen-onboarding').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
   }
@@ -110,15 +115,14 @@ checkAuthState();
 
 // --- DATABASE & LOGIC ---
 async function fetchTransactions() {
+  if (isGuest) return; // ถ้าเป็น Guest ไม่ต้องดึงข้อมูลจากฐานข้อมูล
+
   const { data: { session } } = await supabaseClient.auth.getSession();
   let query = supabaseClient.from('transactions').select('*');
   
-  // เพิ่มเงื่อนไขการแยกข้อมูล
   if (session) {
-    // ถ้าล็อกอิน ให้ดึงเฉพาะข้อมูลของ User คนนี้
     query = query.eq('user_id', session.user.id);
   } else {
-    // ถ้าเป็น Guest ให้ดึงเฉพาะข้อมูลที่ไม่มีเจ้าของ (user_id เป็น null)
     query = query.is('user_id', null);
   }
 
@@ -133,7 +137,7 @@ async function fetchTransactions() {
     });
   });
 
-  // กระจายรายการทุกเดือนไป 6 เดือน
+  // กระจายรายการทุกเดือน
   let firstMonthWithData = Object.keys(monthsData).find(key => monthsData[key].length > 0);
   if (firstMonthWithData) {
     let recurringItems = monthsData[firstMonthWithData].filter(i => i.occurrence === 'recurring');
@@ -249,13 +253,40 @@ function toggleSelect(id) {
 
 async function deleteSelected() {
   if (selectedItems.size === 0) return;
+
+  // ถ้าเป็น Guest ให้ลบแค่ใน Memory
+  if (isGuest) {
+    selectedItems.forEach(fullId => {
+      let baseId = fullId.split('_')[0];
+      Object.keys(monthsData).forEach(m => {
+        monthsData[m] = monthsData[m].filter(i => !i.id.startsWith(baseId));
+      });
+    });
+    toggleSelectMode(); renderHome(); renderPlanner();
+    return;
+  }
+
+  // ถ้า Login แล้วลบในฐานข้อมูล
   const realIds = Array.from(selectedItems).map(id => id.split('_')[0]);
   await supabaseClient.from('transactions').delete().in('id', realIds);
   toggleSelectMode(); fetchTransactions();
 }
 
 async function deleteSingleItem() {
-  const fullId = document.getElementById('editing-id').value; if (!fullId) return;
+  const fullId = document.getElementById('editing-id').value; 
+  if (!fullId) return;
+
+  // ถ้าเป็น Guest ให้ลบแค่ใน Memory
+  if (isGuest) {
+    let baseId = fullId.split('_')[0];
+    Object.keys(monthsData).forEach(m => {
+      monthsData[m] = monthsData[m].filter(i => !i.id.startsWith(baseId));
+    });
+    closeSheet(); renderHome(); renderPlanner();
+    return;
+  }
+
+  // ถ้า Login แล้วลบในฐานข้อมูล
   const realId = fullId.split('_')[0]; 
   await supabaseClient.from('transactions').delete().eq('id', realId);
   closeSheet(); fetchTransactions();
@@ -320,11 +351,37 @@ async function saveItem() {
   if(!name || amount <= 0){alert('กรุณากรอกชื่อรายการและยอดเงินให้ถูกต้อง');return;}
   
   let targetMonth = (currentOccurrence === 'recurring') ? currentMonth : plannerMonth;
-  const payload = { month_key: targetMonth, name, amount, type: currentSheetType, category: selectedCategory, occurrence: currentOccurrence, total_debt: totalDebt };
-  
+  const payload = { name, amount, type: currentSheetType, cat: selectedCategory, totalDebt, occurrence: currentOccurrence };
+
+  // ถ้าเป็น Guest ให้เก็บใน Memory อย่างเดียว ไม่ยิงฐานข้อมูล
+  if (isGuest) {
+    const newId = 'guest' + Date.now();
+    if (!monthsData[targetMonth]) monthsData[targetMonth] = [];
+    monthsData[targetMonth].push({ id: newId, ...payload });
+
+    if (currentOccurrence === 'recurring') {
+      monthOrder.forEach(mName => {
+        if (!monthsData[mName]) monthsData[mName] = [];
+        let exists = monthsData[mName].some(i => i.name === name && i.type === currentSheetType && i.cat === selectedCategory);
+        if (!exists) {
+          monthsData[mName].push({ id: newId + '_' + mName, ...payload });
+        }
+      });
+    }
+
+    toggleSheet(false); 
+    renderHome(); renderPlanner();
+    return;
+  }
+
+  // ถ้า Login แล้วบันทึกลงฐานข้อมูล
   try {
     const { data: { session } } = await supabaseClient.auth.getSession(); 
     payload.user_id = session?.user?.id || null; 
+    payload.month_key = targetMonth;
+    payload.category = selectedCategory;
+    payload.total_debt = totalDebt;
+    
     if(realId) { 
       const { error } = await supabaseClient.from('transactions').update(payload).eq('id', realId); 
       if(error) throw error; 
@@ -347,10 +404,29 @@ function updateScenario() { const cBal=getTotals(currentMonth).in_-getTotals(cur
 async function confirmScenario() { 
   const price=parseNumber(document.getElementById('sc-price').value); const months=parseInt(document.getElementById('sc-month-slider').value); const interest=parseInt(document.getElementById('sc-interest-slider').value); 
   let payload={}; 
-  if(currentScenarioType==='buy'){let i=(interest/100)/12;let m=interest===0?price/months:(price*i*Math.pow(1+i,months))/(Math.pow(1+i,months)-1);payload={name:'ผ่อนของ (Scenario)',amount:Math.round(m),type:'debt',category:'ผ่อนของ',total_debt:price,occurrence:'installment'};} 
-  else if(currentScenarioType==='payoff'){payload={name:'เงินอิสระ (ปิดหนี้)',amount:8500,type:'income',category:'ปิดหนี้',occurrence:'recurring',total_debt:0};} 
-  else {payload={name:'งบประหยัด (Scenario)',amount:price,type:'savings',category:'ปรับงบ',occurrence:'recurring',total_debt:0};} 
+  if(currentScenarioType==='buy'){let i=(interest/100)/12;let m=interest===0?price/months:(price*i*Math.pow(1+i,months))/(Math.pow(1+i,months)-1);payload={name:'ผ่อนของ (Scenario)',amount:Math.round(m),type:'debt',cat:'ผ่อนของ',totalDebt:price,occurrence:'installment'};} 
+  else if(currentScenarioType==='payoff'){payload={name:'เงินอิสระ (ปิดหนี้)',amount:8500,type:'income',cat:'ปิดหนี้',occurrence:'recurring',totalDebt:0};} 
+  else {payload={name:'งบประหยัด (Scenario)',amount:price,type:'savings',cat:'ปรับงบ',occurrence:'recurring',totalDebt:0};} 
   payload.month_key = currentMonth;
+
+  // ถ้าเป็น Guest ให้เก็บใน Memory
+  if (isGuest) {
+    const newId = 'guest' + Date.now();
+    if (!monthsData[currentMonth]) monthsData[currentMonth] = [];
+    monthsData[currentMonth].push({ id: newId, ...payload });
+    if (payload.occurrence === 'recurring') {
+      monthOrder.forEach(mName => {
+        if (!monthsData[mName]) monthsData[mName] = [];
+        let exists = monthsData[mName].some(i => i.name === payload.name && i.type === payload.type && i.cat === payload.cat);
+        if (!exists) monthsData[mName].push({ id: newId + '_' + mName, ...payload });
+      });
+    }
+    switchScreen('planner', { currentTarget: document.querySelectorAll('.nav-btn')[1] });
+    renderHome(); renderPlanner();
+    return;
+  }
+
+  // ถ้า Login ให้เก็บลงฐานข้อมูล
   const { data: { session } } = await supabaseClient.auth.getSession(); payload.user_id = session?.user?.id || null; 
   await supabaseClient.from('transactions').insert(payload); 
   switchScreen('planner', { currentTarget: document.querySelectorAll('.nav-btn')[1] }); fetchTransactions(); 
