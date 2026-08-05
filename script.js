@@ -37,7 +37,9 @@ function generateMonths() {
 }
 generateMonths();
 
-let monthsData = {}; 
+let monthsData = {};
+// ซ่อน Splash Screen หลังผ่านไป 2 วินาที
+setTimeout(() => { document.getElementById('splash').classList.add('hide'); }, 2000); 
 let currentSheetType = 'income', selectedCategory = '', currentOccurrence = 'recurring', isSelectMode = false, selectedItems = new Set(), currentScenarioType = 'buy', plannerMonth = "";
 
 // --- AUTHENTICATION ---
