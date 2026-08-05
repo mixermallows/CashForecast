@@ -110,7 +110,19 @@ checkAuthState();
 
 // --- DATABASE & LOGIC ---
 async function fetchTransactions() {
-  const { data, error } = await supabaseClient.from('transactions').select('*');
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  let query = supabaseClient.from('transactions').select('*');
+  
+  // เพิ่มเงื่อนไขการแยกข้อมูล
+  if (session) {
+    // ถ้าล็อกอิน ให้ดึงเฉพาะข้อมูลของ User คนนี้
+    query = query.eq('user_id', session.user.id);
+  } else {
+    // ถ้าเป็น Guest ให้ดึงเฉพาะข้อมูลที่ไม่มีเจ้าของ (user_id เป็น null)
+    query = query.is('user_id', null);
+  }
+
+  const { data, error } = await query;
   if (error) { console.error(error); return; }
   
   monthsData = {};
