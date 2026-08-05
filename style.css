@@ -203,3 +203,36 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helve
 .nav-btn.active { color: #0A84FF; }
 .nav-btn svg { width: 24px; height: 24px; }
 .nav-btn span { font-size: 10px; font-weight: 500; }
+/* ตารางหมวดหมู่ 2 แถว */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px 8px;
+  margin-bottom: 20px;
+}
+.cat-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--input-bg);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 8px 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cat-btn span.icon { font-size: 20px; margin-bottom: 4px; }
+.cat-btn span.label { font-size: 10px; font-weight: 500; color: var(--text-secondary); text-align: center; line-height: 1.1; }
+.cat-btn.active { background: rgba(10, 132, 255, 0.1); border-color: rgba(10, 132, 255, 0.2); }
+.cat-btn.active span.label { color: #0A84FF; }
+
+/* ปรับแถบเลื่อนเดือนใน Scenario */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="10" viewBox="0 0 24 24" width="10" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px !important;
+}
