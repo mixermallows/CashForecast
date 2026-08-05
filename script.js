@@ -340,7 +340,6 @@ function calcInstallment() {
     document.getElementById('calc-result').classList.remove('show');
   }
 }
-
 async function saveItem() {
   const fullId = document.getElementById('editing-id').value; 
   const realId = fullId ? fullId.split('_')[0] : null; 
@@ -351,7 +350,7 @@ async function saveItem() {
   if(!name || amount <= 0){alert('กรุณากรอกชื่อรายการและยอดเงินให้ถูกต้อง');return;}
   
   let targetMonth = (currentOccurrence === 'recurring') ? currentMonth : plannerMonth;
-  const payload = { name, amount, type: currentSheetType, cat: selectedCategory, totalDebt, occurrence: currentOccurrence };
+  const payload = { name, amount, type: currentSheetType, category: selectedCategory, totalDebt, occurrence: currentOccurrence };
 
   // ถ้าเป็น Guest ให้เก็บใน Memory อย่างเดียว ไม่ยิงฐานข้อมูล
   if (isGuest) {
