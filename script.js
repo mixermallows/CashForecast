@@ -359,7 +359,6 @@ async function saveItem() {
       const newId = 'guest' + Date.now();
       if (realId) {
         if (currentOccurrence === 'recurring') {
-          // Split Recurring for Guest
           for (let i = currentIdx; i < monthOrder.length; i++) {
             monthsData[monthOrder[i].id] = monthsData[monthOrder[i].id].filter(item => !item.id.startsWith(realId));
           }
@@ -454,7 +453,7 @@ function switchScenarioType(type) {
   document.getElementById('sc-buy-ui').style.display = type === 'buy' ? 'block' : 'none';
   document.getElementById('sc-payoff-ui').style.display = type === 'payoff' ? 'block' : 'none';
   document.getElementById('sc-adjust-ui').style.display = type === 'adjust' ? 'block' : 'none';
-  document.getElementById('sc-start-month-ui').style.display = type === 'buy' ? 'block' : 'none';
+  document.getElementById('sc-start-month-ui').style.display = 'block'; // แก้ไขให้แสดงทุกโหมด
   const nl=document.getElementById('sc-new-label'); 
   if(type==='buy') nl.innerText = i18n[currentLang].afterSimBal; else if(type==='payoff') nl.innerText = "เงินอิสระเพิ่มขึ้น"; else nl.innerText = "เงินอิสระเปลี่ยนแปลง"; 
   updateScenario(); 
@@ -466,21 +465,23 @@ function updateScenario() {
   document.getElementById('sc-current-bal').innerText=cBal.toLocaleString()+' ฿'; 
   let mImp=0, bD=[], aD=[]; for(let i=0;i<6;i++){ let bB=getProjectedCash(i); bD.push(bB); } 
   
+  let startIdx = monthOrder.findIndex(m => m.id === selectedScenarioMonthId); 
+  if (startIdx === -1) startIdx = 0;
+
   if(currentScenarioType==='buy'){ 
     const price=parseNumber(document.getElementById('sc-price').value); const months=parseInt(document.getElementById('sc-months').value)||0; const interest=parseDecimal(document.getElementById('sc-interest').value); 
     if(interest===0) mImp=price/months; else { let i_r=(interest/100)/12; mImp=(price*i_r*Math.pow(1+i_r,months))/(Math.pow(1+i_r,months)-1); } 
-    let startIdx = monthOrder.findIndex(m => m.id === selectedScenarioMonthId); if (startIdx === -1) startIdx = 0; 
     for(let i=0;i<6;i++){ if(i >= startIdx) aD.push(bD[i]-mImp); else aD.push(bD[i]); } 
   } else if(currentScenarioType==='payoff'){ 
     let selectVal = document.getElementById('sc-payoff-select').value; 
     mImp = selectVal ? parseFloat(selectVal.split('|')[1]) : 0; 
-    for(let i=0;i<6;i++) aD.push(bD[i]+mImp); 
+    for(let i=0;i<6;i++){ if(i >= startIdx) aD.push(bD[i]+mImp); else aD.push(bD[i]); } // เพิ่มเงินอิสระตั้งแต่เดือนที่เลือก
   } else { 
     let selectVal = document.getElementById('sc-adjust-select').value; 
     let oldAmt = selectVal ? parseFloat(selectVal.split('|')[1]) : 0; 
     let newAmt = parseNumber(document.getElementById('sc-adjust-amount').value); 
     mImp = oldAmt - newAmt; 
-    for(let i=0;i<6;i++) aD.push(bD[i]+mImp); 
+    for(let i=0;i<6;i++){ if(i >= startIdx) aD.push(bD[i]+mImp); else aD.push(bD[i]); } // เปลี่ยนแปลงเงินอิสระตั้งแต่เดือนที่เลือก
   }
   
   let allV=[...bD,...aD]; let minV=Math.min(...allV); let maxV=Math.max(...allV); let range=maxV-minV||1; 
@@ -492,52 +493,132 @@ function updateScenario() {
 }
 function showPreview() {
   let previewHtml = `<input type="text" id="preview-name" class="input-field" value="ผ่อนของ (Simulator)" style="margin-bottom:12px;">`;
+  const mObj = monthOrder.find(m => m.id === selectedScenarioMonthId); const startMonthName = currentLang === 'th' ? mObj.th : mObj.en; 
+
   if(currentScenarioType==='buy'){ 
     const price=parseNumber(document.getElementById('sc-price').value); const months=parseInt(document.getElementById('sc-months').value); const interest=parseDecimal(document.getElementById('sc-interest').value); 
     let monthly=0, totalInterest=0; if(interest===0) monthly=price/months; else { let i=(interest/100)/12; monthly=price*i*Math.pow(1+i,months)/(Math.pow(1+i,months)-1); totalInterest=(monthly*months)-price; } 
-    const mObj = monthOrder.find(m => m.id === selectedScenarioMonthId); const startMonthName = currentLang === 'th' ? mObj.th : mObj.en; 
     previewHtml += `<p><strong>ยอดผ่อนต่อเดือน:</strong> ${Math.round(monthly).toLocaleString()} ฿</p><p><strong>จำนวนงวด:</strong> ${months} เดือน</p><p><strong>เงินต้นทั้งหมด:</strong> ${price.toLocaleString()} ฿</p><p><strong>ดอกเบี้ยรวม:</strong> ${Math.round(totalInterest).toLocaleString()} ฿</p><p style="margin-top:12px; color:#636366; font-size:14px;">เริ่มหักยอดเงินต้นในเดือน <strong>${startMonthName}</strong> จนครบ ${months} งวด</p>`; 
   } else if(currentScenarioType==='payoff'){ 
     let selectVal = document.getElementById('sc-payoff-select').value; let name = selectVal ? document.getElementById('sc-payoff-select').selectedOptions[0].text.split(' (')[0] : 'ปิดหนี้'; document.getElementById('preview-name').value = `ปิดหนี้: ${name}`; 
-    previewHtml += `<p style="color:#636366; font-size:14px;">รายการหนี้นี้จะถูกปิด และจะไม่ถูกหักออกในเดือนถัดไป ทำให้เงินอิสระของคุณเพิ่มขึ้น</p>`; 
+    previewHtml += `<p style="color:#636366; font-size:14px;">รายการหนี้นี้จะถูกปิด และจะไม่ถูกหักออกตั้งแต่เดือน <strong>${startMonthName}</strong> เป็นต้นไป ทำให้เงินอิสระของคุณเพิ่มขึ้น</p>`; 
   } else { 
     let selectVal = document.getElementById('sc-adjust-select').value; let name = selectVal ? document.getElementById('sc-adjust-select').selectedOptions[0].text.split(' (')[0] : 'ปรับงบ'; document.getElementById('preview-name').value = `ปรับงบ: ${name}`; 
     let oldAmt = selectVal ? parseFloat(selectVal.split('|')[1]) : 0; let newAmt = parseNumber(document.getElementById('sc-adjust-amount').value); 
-    previewHtml += `<p><strong>ยอดเดิม:</strong> ${oldAmt.toLocaleString()} ฿</p><p><strong>ยอดใหม่:</strong> ${newAmt.toLocaleString()} ฿</p><p style="margin-top:12px; color:#636366; font-size:14px;">เงินอิสระของคุณจะเปลี่ยนแปลงไปทุกเดือนถัดไป</p>`; 
+    previewHtml += `<p><strong>ยอดเดิม:</strong> ${oldAmt.toLocaleString()} ฿</p><p><strong>ยอดใหม่:</strong> ${newAmt.toLocaleString()} ฿</p><p style="margin-top:12px; color:#636366; font-size:14px;">เงินอิสระของคุณจะเปลี่ยนแปลงไปตั้งแต่เดือน <strong>${startMonthName}</strong> เป็นต้นไป</p>`; 
   }
   document.getElementById('preview-content').innerHTML = previewHtml;
   document.getElementById('preview-overlay').classList.add('active'); document.getElementById('preview-sheet').classList.add('active');
 }
 function closePreview() { document.getElementById('preview-overlay').classList.remove('active'); document.getElementById('preview-sheet').classList.remove('active'); }
+
+// แก้ไข Logic การบันทึก Simulator (ปิดหนี้ และ ปรับงบ)
 async function confirmScenario() { 
   closePreview();
   const customName = document.getElementById('preview-name').value || 'ผ่อนของ (Simulator)';
   let payload = { name: customName, notes: customName, icon: '🛒', occurrence: 'recurring', month_key: selectedScenarioMonthId, start_month: selectedScenarioMonthId, category: 'Simulator' };
+
+  let startIdx = monthOrder.findIndex(m => m.id === selectedScenarioMonthId); 
+  let prevMonthId = startIdx > 0 ? monthOrder[startIdx - 1].id : null;
 
   if(currentScenarioType==='buy'){ 
     const price=parseNumber(document.getElementById('sc-price').value); const months=parseInt(document.getElementById('sc-months').value); const interest=parseDecimal(document.getElementById('sc-interest').value); 
     let i=(interest/100)/12; let m=interest===0?price/months:(price*i*Math.pow(1+i,months))/(Math.pow(1+i,months)-1); 
     payload.amount = Math.round(m); payload.total_debt = price; payload.type = 'debt'; payload.occurrence = 'installment'; payload.category = 'ผ่อน'; payload.icon = '🛒'; payload.months = months; 
   } else if(currentScenarioType==='payoff'){ 
-    let selectVal = document.getElementById('sc-payoff-select').value; let oldId = selectVal ? selectVal.split('|')[0] : null; let oldAmt = selectVal ? parseFloat(selectVal.split('|')[1]) : 0; 
+    let selectVal = document.getElementById('sc-payoff-select').value; 
+    let oldId = selectVal ? selectVal.split('|')[0] : null; 
+    
+    if (!oldId) { alert('กรุณาเลือกรายการหนี้สิน'); return; }
+    
+    // Logic ปิดหนี้: ตั้งค่า end_month ของรายการเดิมให้หยุดก่อนเดือนที่เลือก (หรือลบทิ้งถ้าเลือกเดือนปัจจุบัน)
     if (isGuest) {
-      Object.keys(monthsData).forEach(m => { monthsData[m].forEach(item => { if (item.id.startsWith(oldId.split('_')[0])) { item.occurrence = 'once'; } }); });
+      for (let i = startIdx; i < monthOrder.length; i++) {
+        monthsData[monthOrder[i].id] = monthsData[monthOrder[i].id].filter(item => !item.id.startsWith(oldId.split('_')[0]));
+      }
     } else {
-      await supabaseClient.from('transactions').update({ end_month: currentMonthId }).eq('id', oldId.split('_')[0]);
+      if (prevMonthId) {
+        await supabaseClient.from('transactions').update({ end_month: prevMonthId }).eq('id', oldId.split('_')[0]);
+      } else {
+        // ถ้าเลือกเดือนแรกสุด แปลว่าไม่ต้องมีรายการนี้เลย
+        await supabaseClient.from('transactions').update({ end_month: '' }).eq('id', oldId.split('_')[0]);
+      }
     }
-    switchScreen('planner', { currentTarget: document.querySelectorAll('.nav-btn')[1] }); fetchTransactions(); return;
-  } else { 
-    let selectVal = document.getElementById('sc-adjust-select').value; let oldId = selectVal ? selectVal.split('|')[0] : null; let oldAmt = selectVal ? parseFloat(selectVal.split('|')[1]) : 0; let newAmt = parseNumber(document.getElementById('sc-adjust-amount').value); 
+    switchScreen('planner', { currentTarget: document.querySelectorAll('.nav-btn')[1] }); 
+    if (isGuest) { renderHome(); renderPlanner(); } else { fetchTransactions(); }
+    return;
+  } else { // Adjust
+    let selectVal = document.getElementById('sc-adjust-select').value; 
+    let oldId = selectVal ? selectVal.split('|')[0] : null; 
+    let newAmt = parseNumber(document.getElementById('sc-adjust-amount').value);
+    
+    if (!oldId) { alert('กรุณาเลือกรายจ่าย'); return; }
+
+    // หาข้อมูลของรายการเดิม
+    let oldItem;
+    for (let i = 0; i < 6; i++) {
+      let found = (monthsData[monthOrder[i].id] || []).find(it => it.id.startsWith(oldId.split('_')[0]));
+      if (found) { oldItem = found; break; }
+    }
+    if (!oldItem) { alert('ไม่พบรายการเดิม'); return; }
+
+    // สร้าง Payload สำหรับรายการใหม่ที่ปรับยอดแล้ว
+    let newPayload = {
+      name: oldItem.name,
+      notes: oldItem.name,
+      amount: newAmt,
+      type: oldItem.type,
+      category: oldItem.category,
+      icon: oldItem.icon,
+      occurrence: oldItem.occurrence,
+      total_debt: oldItem.total_debt,
+      month_key: selectedScenarioMonthId,
+      start_month: selectedScenarioMonthId,
+      months: oldItem.months // ถ้าเป็นผ่อนของ ให้ใช้จำนวนงวดที่เหลือเท่าเดิม
+    };
+
+    // Logic ปรับงบ: Split Recurring (หยุดของเดิม แล้วสร้างของใหม่ตั้งแต่เดือนที่เลือก)
     if (isGuest) {
-      Object.keys(monthsData).forEach(m => { monthsData[m].forEach(item => { if (item.id.startsWith(oldId.split('_')[0])) { item.amount = newAmt; } }); });
+      // 1. ลบรายการเดิมตั้งแต่เดือนที่เลือกเป็นต้นไป
+      for (let i = startIdx; i < monthOrder.length; i++) {
+        monthsData[monthOrder[i].id] = monthsData[monthOrder[i].id].filter(item => !item.id.startsWith(oldId.split('_')[0]));
+      }
+      // 2. เพิ่มรายการใหม่ตั้งแต่เดือนที่เลือกเป็นต้นไป
+      const newId = 'guest' + Date.now();
+      if (newPayload.occurrence === 'installment') {
+        let remMonths = newPayload.months;
+        for (let i = 0; i < remMonths; i++) {
+          let tIdx = startIdx + i;
+          if (tIdx < monthOrder.length) {
+            let remaining = newPayload.total_debt - (newAmt * i); if (remaining < 0) remaining = 0;
+            monthsData[monthOrder[tIdx].id].push({ id: newId + '_' + monthOrder[tIdx].id, ...newPayload, total_debt: remaining, months: remMonths - i });
+          }
+        }
+      } else {
+        for (let i = startIdx; i < monthOrder.length; i++) {
+          monthsData[monthOrder[i].id].push({ id: newId + '_' + monthOrder[i].id, ...newPayload });
+        }
+      }
     } else {
-      await supabaseClient.from('transactions').update({ amount: newAmt }).eq('id', oldId.split('_')[0]);
+      // 1. หยุดรายการเดิม
+      if (prevMonthId) {
+        await supabaseClient.from('transactions').update({ end_month: prevMonthId }).eq('id', oldId.split('_')[0]);
+      } else {
+        await supabaseClient.from('transactions').update({ end_month: '' }).eq('id', oldId.split('_')[0]);
+      }
+      // 2. Insert รายการใหม่
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      newPayload.user_id = session?.user?.id || null;
+      await supabaseClient.from('transactions').insert(newPayload);
     }
-    switchScreen('planner', { currentTarget: document.querySelectorAll('.nav-btn')[1] }); fetchTransactions(); return;
+    switchScreen('planner', { currentTarget: document.querySelectorAll('.nav-btn')[1] }); 
+    if (isGuest) { renderHome(); renderPlanner(); } else { fetchTransactions(); }
+    return;
   }
 
+  // Logic ซื้อของผ่อน (เดิม)
   if (isGuest) { 
-    const newId = 'guest' + Date.now(); let startIdx = monthOrder.findIndex(m => m.id === selectedScenarioMonthId); 
+    const newId = 'guest' + Date.now(); 
     for (let i = startIdx; i < monthOrder.length; i++) { if (!monthsData[monthOrder[i].id]) monthsData[monthOrder[i].id] = []; monthsData[monthOrder[i].id].push({ id: newId + '_' + monthOrder[i].id, name: payload.name, amount: payload.amount, type: payload.type, category: payload.category, icon: payload.icon, total_debt: payload.total_debt || 0, occurrence: payload.occurrence, months: payload.months || 0 }); } 
     switchScreen('planner', { currentTarget: document.querySelectorAll('.nav-btn')[1] }); renderHome(); renderPlanner(); return; 
   }
