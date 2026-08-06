@@ -58,12 +58,15 @@
       <div id="health-empty-text" style="display:none; font-size:11px; color:var(--text-muted); margin-top:8px; text-align:center;">* เริ่มวางแผนเงินเดือนนี้เพื่อดูคะแนนสุขภาพการเงิน *</div>
     </div>
 
-    <!-- Line Chart 6 เดือน -->
+        <!-- Line Chart 6 เดือน -->
     <div class="glass-card chart-card">
       <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;" data-i18n="cashFlow6m">แนวโน้มกระแสเงินสด 6 เดือน</p>
-      <div id="home-chart-container" style="height: 120px; position: relative;">
+      <div style="position: relative; width: 100%; height: 120px;">
         <svg id="home-line-chart" viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%; height:100%; overflow:visible;"></svg>
+        <!-- เพิ่ม Layer นี้เพื่อใส่จุดและตัวเลขแบบ HTML ไม่ให้บิดเบี้ยว -->
+        <div id="home-chart-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
       </div>
+      <div id="home-chart-xaxis" style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-top: 8px; padding: 0 2%;"></div>
     </div>
 
     <!-- Waterfall Chart -->
