@@ -125,18 +125,38 @@ function renderHome() {
   if (score >= 80) barFg.style.background = '#30D158'; else if (score >= 50) barFg.style.background = '#FF9F0A'; else barFg.style.background = '#FF453A';
   document.getElementById('health-empty-text').style.display = emptyState ? 'block' : 'none';
 
-  // Line Chart 6 Months
-  let points = []; let labels = []; let maxV = 0, minV = 0;
+    // Line Chart 6 Months (ใช้ HTML Overlay กันบิดเบี้ยว)
+  let points = []; let maxV = 0, minV = 0;
   for(let i=0; i<6; i++) { let val = getProjectedCash(i); points.push(val); if(val > maxV) maxV = val; if(val < minV) minV = val; }
+  
+  // ถ้ายอดเท่ากันหมด ให้ขยายช่วงเลขนิดหน่อย เพื่อไม่ให้กราฟเป็นเส้นตรงติดพื้น
+  if (maxV === minV) { maxV += 1; minV -= 1; }
   let range = maxV - minV || 1;
-  let pathD = ""; let areaD = ""; let dotsHtml = "";
+  
+  let pathD = ""; let areaD = ""; let overlayHtml = "";
   points.forEach((val, i) => {
-    let x = (i / 5) * 100; let y = 90 - ((val - minV) / range) * 80;
-    if(i === 0) { pathD += `M${x},${y}`; areaD += `M${x},90 L${x},${y}`; } else { pathD += ` L${x},${y}`; areaD += ` L${x},${y}`; }
-    dotsHtml += `<circle cx="${x}" cy="${y}" r="2" class="line-dot" onclick="switchScreen('planner', {currentTarget: document.querySelectorAll('.nav-btn')[1]}); navigateMonthTo(${i})"></circle>`;
+      let x = (i / 5) * 100; 
+      let y = 90 - ((val - minV) / range) * 80;
+      
+      if(i === 0) { pathD += `M${x},${y}`; areaD += `M${x},90 L${x},${y}`; } 
+      else { pathD += ` L${x},${y}`; areaD += ` L${x},${y}`; }
+      
+      let color = val < 0 ? '#FF453A' : val < 5000 ? '#FF9F0A' : '#0A84FF';
+      // สร้างจุดกลมและตัวเลขด้วย HTML
+      overlayHtml += `<div style="position:absolute; left:${x}%; top:${y}%; transform:translate(-50%, -50%); pointer-events:auto; cursor:pointer;" onclick="goToPlannerMonth(${i})">`;
+      overlayHtml += `<div style="width:8px; height:8px; background:${color}; border-radius:50%; border: 1.5px solid white; box-shadow: 0 1px 2px rgba(0,0,0,0.1);"></div>`;
+      overlayHtml += `<div style="position:absolute; left:50%; top:-16px; transform:translateX(-50%); font-size:9px; font-weight:600; color:var(--text-secondary); white-space:nowrap;">${val.toLocaleString()}</div>`;
+      overlayHtml += `</div>`;
   });
   areaD += ` L100,90 Z`;
-  document.getElementById('home-line-chart').innerHTML = `<path d="${areaD}" class="line-area"/><path d="${pathD}" class="line-path"/>${dotsHtml}`;
+  document.getElementById('home-line-chart').innerHTML = `<path d="${areaD}" class="line-area"/><path d="${pathD}" class="line-path"/>`;
+  document.getElementById('home-chart-overlay').innerHTML = overlayHtml;
+  
+  // แสดงชื่อเดือนด้านล่างกราฟ
+  let xLabelsHtml = monthOrder.slice(0, 6).map(m => `<span>${currentLang === 'th' ? m.abbrTh : m.abbrEn}</span>`).join('');
+  if (document.getElementById('home-chart-xaxis')) {
+      document.getElementById('home-chart-xaxis').innerHTML = xLabelsHtml;
+  }
 
   // Waterfall Chart
   let inc = t.in_, exp = t.out, debt = t.debt, save = t.save, bal = inc - exp - debt - save;
@@ -162,7 +182,10 @@ function renderHome() {
   document.getElementById('waterfall-labels').innerHTML = `<span style="color:#30D158">+${inc.toLocaleString()}</span><span style="color:#FF9F0A">-${exp.toLocaleString()}</span><span style="color:#FF453A">-${debt.toLocaleString()}</span><span style="color:#BF5AF2">-${save.toLocaleString()}</span><span style="color:#0A84FF">=${bal.toLocaleString()}</span>`;
 }
 
-function navigateMonthTo(index) { if (index >= 0 && index < monthOrder.length) { plannerMonthId = monthOrder[index].id; renderPlanner(); } }
+function goToPlannerMonth(index) {
+  switchScreen('planner', { currentTarget: document.querySelectorAll('.nav-btn')[1] });
+  navigateMonthTo(index);
+}
 
 function renderPlanner() {
   const mObj = monthOrder.find(m => m.id === plannerMonthId);
