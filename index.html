@@ -33,7 +33,7 @@
 </div>
 
 <div class="app-container" id="app" style="display: none;">
-  <!-- HOME -->
+  <!-- OVERVIEW -->
   <div class="screen active" id="screen-home">
     <div class="header">
       <h1 data-i18n="overview">ภาพรวม</h1>
@@ -47,27 +47,32 @@
       <h2 id="home-free-cash">0<span>฿</span></h2>
       <div id="home-badge" class="badge green" data-i18n="safe">สบายๆ ยังพอผ่อนของได้</div>
     </div>
-    <div class="glass-card health-card">
-      <div class="ring-container">
-        <svg class="ring-svg" viewBox="0 0 120 120">
-          <circle class="ring-bg" cx="60" cy="60" r="50"></circle>
-          <circle class="ring-fg" id="ring-fg" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16"></circle>
-        </svg>
-        <div class="ring-score">
-          <h2 id="score-num">0</h2>
-          <p data-i18n="healthScore">สุขภาพการเงิน</p>
-        </div>
+    
+    <!-- Health Bar (แทนวงแหวน) -->
+    <div class="glass-card health-bar-card">
+      <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:12px;">
+        <span data-i18n="healthScore">สุขภาพการเงิน</span>
+        <span id="score-num">0/100</span>
       </div>
-      <div class="health-criteria">
-        <strong data-i18n="criteriaTitle">เกณฑ์การให้คะแนน</strong><br>
-        • <span data-i18n="crit1">50 คะแนน: กระแสเงินสดเป็นบวก</span><br>
-        • <span data-i18n="crit2">30 คะแนน: ออม ≥ 10% ของรายได้</span><br>
-        • <span data-i18n="crit3">20 คะแนน: หนี้สิน ≤ 20% ของรายได้</span>
+      <div class="health-bar-bg"><div class="health-bar-fg" id="health-bar-fg"></div></div>
+      <div id="health-empty-text" style="display:none; font-size:11px; color:var(--text-muted); margin-top:8px; text-align:center;">* เริ่มวางแผนเงินเดือนนี้เพื่อดูคะแนนสุขภาพการเงิน *</div>
+    </div>
+
+    <!-- Line Chart 6 เดือน -->
+    <div class="glass-card chart-card">
+      <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;" data-i18n="cashFlow6m">แนวโน้มกระแสเงินสด 6 เดือน</p>
+      <div id="home-chart-container" style="height: 120px; position: relative;">
+        <svg id="home-line-chart" viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%; height:100%; overflow:visible;"></svg>
       </div>
     </div>
+
+    <!-- Waterfall Chart -->
     <div class="glass-card chart-card">
-      <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;" data-i18n="cashFlow4m">กระแสเงินสดล่วงหน้า 4 เดือน</p>
-      <div class="chart-bars" id="home-chart"></div>
+      <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;" data-i18n="waterfallTitle">เงินหายไปไหน?</p>
+      <div id="waterfall-container" style="height: 150px; position: relative;">
+        <svg id="waterfall-chart" viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%; height:100%; overflow:visible;"></svg>
+      </div>
+      <div id="waterfall-labels" style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted); margin-top:8px;"></div>
     </div>
   </div>
 
@@ -108,13 +113,12 @@
     </div>
     <input type="hidden" id="editing-id">
     
-    <!-- 1. เลือกหมวดหมู่ก่อน -->
     <div class="form-group" id="category-group">
       <label class="form-label" data-i18n="catBank">หมวดหมู่</label>
       <div class="category-grid" id="category-grid-container"></div>
+      <small id="cat-hint" style="display:none; font-size:12px; color:var(--text-muted); margin-top:8px; display:block;"></small>
     </div>
 
-    <!-- ฟอร์มรายรับ (Net Income) -->
     <div id="income-group" style="display:none;">
       <div class="form-group"><label class="form-label">เงินเดือน (Gross)</label><input type="text" class="input-field" id="form-gross" placeholder="0" oninput="calcNetIncome()"></div>
       <div class="form-group"><label class="form-label">รายได้อื่นๆ</label><input type="text" class="input-field" id="form-other-income" placeholder="0" oninput="calcNetIncome()"></div>
@@ -133,7 +137,6 @@
       </div>
     </div>
 
-    <!-- ฟอร์มหนี้สิน (ผ่อน/สินเชื่อ) -->
     <div class="form-group" id="installment-group" style="display:none;">
       <div style="display: flex; gap: 12px; margin-bottom: 12px;">
         <div style="flex: 1;"><label class="form-label" data-i18n="totalPrice">เงินต้น</label><input type="text" class="input-field" inputmode="numeric" id="form-total-debt" placeholder="30,000" oninput="calcInstallment()"></div>
@@ -144,10 +147,8 @@
       <div class="calc-result" id="calc-result"><p data-i18n="monthlyCalc">ยอดผ่อนต่อเดือน (คำนวณอัตโนมัติ)</p><h4 id="calc-monthly">0 ฿</h4></div>
     </div>
 
-    <!-- 2. ยอดเงิน -->
     <div class="form-group" id="amount-group"><label class="form-label" id="amount-label" data-i18n="amount">ยอดเงิน</label><input type="text" class="input-field" inputmode="numeric" id="form-amount" placeholder="0" style="font-size: 24px; font-weight: 700;"></div>
     
-    <!-- 3. Notes -->
     <div class="form-group" id="notes-group"><label class="form-label">Notes (รายละเอียดเพิ่มเติม - ไม่ใส่ก็ได้)</label><input type="text" class="input-field" id="form-notes" placeholder="เช่น ค่าก๋วยเตี๋ยวเรือ"></div>
 
     <div class="form-group" id="occurrence-group"><label class="form-label" data-i18n="occurrenceType">ประเภทการเกิดขึ้น</label><div class="toggle-group">
@@ -171,36 +172,49 @@
     </div>
   </div>
 
-  <!-- SCENARIO -->
+  <!-- SIMULATOR -->
   <div class="screen screen-scenario" id="screen-scenario">
-    <div class="header"><div><h1 data-i18n="scenario">Scenario</h1><p data-i18n="scenarioDesc">จำลองสถานการณ์ก่อนตัดสินใจ</p></div></div>
+    <div class="header"><div><h1 data-i18n="simulator">Simulator</h1><p data-i18n="scenarioDesc">จำลองสถานการณ์ก่อนตัดสินใจ</p></div></div>
     <div class="scenario-chips">
       <div class="sc-chip active" onclick="switchScenarioType('buy')" data-i18n="simBuy">ซื้อของผ่อน</div>
       <div class="sc-chip" onclick="switchScenarioType('payoff')" data-i18n="simPayoff">ปิดหนี้ก้อนนี้</div>
       <div class="sc-chip" onclick="switchScenarioType('adjust')" data-i18n="simAdjust">ปรับงบประมาณ</div>
     </div>
+    
     <div class="sim-card">
-      <p id="sc-label-price" data-i18n="simPriceLabel">ราคาของ (เงินต้น)</p>
-      <input type="text" class="sim-input" id="sc-price" value="30,000" oninput="formatPriceInput(this)">
-      
-      <div id="sc-month-ui">
+      <!-- Buy UI -->
+      <div id="sc-buy-ui">
+        <p data-i18n="simPriceLabel">ราคาของ (เงินต้น)</p>
+        <input type="text" class="sim-input" id="sc-price" value="30,000" oninput="formatPriceInput(this)">
         <div class="slider-container"><span data-i18n="months">จำนวนเดือน</span><span id="sc-month-label">10 เดือน</span></div>
         <input type="range" min="1" max="24" value="10" class="slider" id="sc-month-slider" oninput="updateScenario()">
-      </div>
-
-      <div id="sc-interest-ui">
         <div class="slider-container"><span data-i18n="interestRate">ดอกเบี้ย (%) ต่อปี</span><span id="sc-interest-label">0%</span></div>
         <input type="range" min="0" max="20" value="0" class="slider" id="sc-interest-slider" oninput="updateScenario()">
       </div>
 
-      <div id="sc-start-month-ui" style="margin-bottom: 24px;">
-        <div class="slider-container"><span>เริ่มผ่อนเดือน</span></div>
+      <!-- Payoff UI -->
+      <div id="sc-payoff-ui" style="display:none;">
+        <p style="font-size:14px; color:rgba(255,255,255,0.6); margin-bottom:8px;">เลือกหนี้สินที่จะปิด</p>
+        <select id="sc-payoff-select" onchange="updateScenario()" style="width:100%; background:rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:12px; font-size:16px; margin-bottom:16px;"></select>
+      </div>
+
+      <!-- Adjust UI -->
+      <div id="sc-adjust-ui" style="display:none;">
+        <p style="font-size:14px; color:rgba(255,255,255,0.6); margin-bottom:8px;">เลือกรายจ่ายที่จะปรับ</p>
+        <select id="sc-adjust-select" onchange="updateScenario()" style="width:100%; background:rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:12px; font-size:16px; margin-bottom:12px;"></select>
+        <p style="font-size:14px; color:rgba(255,255,255,0.6); margin-bottom:8px;">ยอดใหม่ (ต่อเดือน)</p>
+        <input type="text" id="sc-adjust-amount" value="0" oninput="formatPriceInput(this)" class="sim-input" style="font-size:28px;">
+      </div>
+
+      <div id="sc-start-month-ui" style="margin-top: 24px;">
+        <div class="slider-container"><span>เริ่มต้นเดือน</span></div>
         <div class="month-chips-container" id="sc-month-chips"></div>
       </div>
     </div>
+
     <div class="trend-chart">
-      <p style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 10px;" data-i18n="trend4m">เทียบกระแสเงินสด 4 เดือนข้างหน้า</p>
-      <svg id="trend-svg" viewBox="0 0 300 100" preserveAspectRatio="none"><g id="chart-lines"></g><g id="chart-labels"></g></svg>
+      <p style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 10px;" data-i18n="trend6m">เทียบกระแสเงินสด 6 เดือนข้างหน้า</p>
+      <svg id="trend-svg" viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%; height:140px; overflow:visible;"><g id="chart-lines"></g><g id="chart-labels"></g></svg>
       <div class="trend-legend"><span><span class="legend-dot" style="background: rgba(255,255,255,0.3);"></span> <span data-i18n="beforeSim">ก่อนผ่อน</span></span><span><span class="legend-dot" style="background: #ffffff;"></span> <span data-i18n="afterSim">หลังผ่อน</span></span></div>
     </div>
     <div class="compare-row">
@@ -231,9 +245,9 @@
   </div>
 
   <div class="bottom-nav" id="bottom-nav">
-    <button class="nav-btn active" onclick="switchScreen('home', event)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l-10 9h3v8h6v-6h2v6h6v-8h3z"/></svg><span data-i18n="home">Home</span></button>
+    <button class="nav-btn active" onclick="switchScreen('home', event)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l-10 9h3v8h6v-6h2v6h6v-8h3z"/></svg><span data-i18n="overview">ภาพรวม</span></button>
     <button class="nav-btn" onclick="switchScreen('planner', event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2h-4M9 3v4M9 3h6M9 7h6M9 7v4M15 3v4M15 7v4"/></svg><span data-i18n="planner">Planner</span></button>
-    <button class="nav-btn" onclick="switchScreen('scenario', event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8L19 13M17.8 6.2L19 5M14.2 6.2L13 5M14.2 11.8L13 13M4 22l6-6M4 22h6M4 22v-6"/></svg><span data-i18n="scenario">Scenario</span></button>
+    <button class="nav-btn" onclick="switchScreen('scenario', event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8L19 13M17.8 6.2L19 5M14.2 6.2L13 5M14.2 11.8L13 13M4 22l6-6M4 22h6M4 22v-6"/></svg><span data-i18n="simulator">Simulator</span></button>
   </div>
 </div>
 
