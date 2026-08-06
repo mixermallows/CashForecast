@@ -320,23 +320,124 @@ function selectCategory(elem, catName, icon) {
 function setOccurrence(type) { currentOccurrence = type; document.querySelectorAll('.toggle-card').forEach(c => c.classList.remove('active')); if (document.getElementById('tg-'+type)) document.getElementById('tg-'+type).classList.add('active'); }
 function calcNetIncome() { const gross = parseNumber(document.getElementById('form-gross').value); const other = parseNumber(document.getElementById('form-other-income').value); const tax = parseNumber(document.getElementById('form-tax').value); const ss = parseNumber(document.getElementById('form-ss').value); const pvd = parseNumber(document.getElementById('form-pvd').value); const studentLoan = parseNumber(document.getElementById('form-student-loan').value); const net = gross + other - tax - ss - pvd - studentLoan; document.getElementById('net-income-val').innerText = net.toLocaleString() + ' ฿'; document.getElementById('form-amount').value = net.toLocaleString(); }
 function calcInstallment() { const p = parseNumber(document.getElementById('form-total-debt').value); const n = parseInt(document.getElementById('form-months').value) || 0; const r = parseDecimal(document.getElementById('form-interest').value); if (p > 0 && n > 0) { let monthly = 0; if (r === 0) { monthly = p / n; } else { let i = (r / 100) / 12; monthly = p * i * Math.pow(1 + i, n) / (Math.pow(1 + i, n) - 1); } let totalPay = monthly * n; let totalInterest = totalPay - p; document.getElementById('calc-monthly').innerHTML = `${Math.round(monthly).toLocaleString()} ฿ /เดือน<br><span style="font-size:12px; color:#636366; font-weight:400;">ดอกเบี้ยรวม: ${Math.round(totalInterest).toLocaleString()} ฿</span>`; document.getElementById('form-amount').value = Math.round(monthly).toLocaleString(); document.getElementById('calc-result').classList.add('show'); } else { document.getElementById('calc-result').classList.remove('show'); } }
+
+// ฟังก์ชันบันทึก (เพิ่ม Logic Split Recurring)
 async function saveItem() {
-  const fullId = document.getElementById('editing-id').value; const realId = fullId ? fullId.split('_')[0] : null; const notes = document.getElementById('form-notes').value.trim(); const amount = parseNumber(document.getElementById('form-amount').value); const totalDebt = parseNumber(document.getElementById('form-total-debt').value); const months = parseInt(document.getElementById('form-months').value) || 0;
+  const fullId = document.getElementById('editing-id').value; 
+  const realId = fullId ? fullId.split('_')[0] : null; 
+  const notes = document.getElementById('form-notes').value.trim(); 
+  const amount = parseNumber(document.getElementById('form-amount').value); 
+  const totalDebt = parseNumber(document.getElementById('form-total-debt').value); 
+  const months = parseInt(document.getElementById('form-months').value) || 0;
+  
   if(amount <= 0){alert('กรุณาใส่ยอดเงินให้ถูกต้อง');return;}
-  const saveBtn = document.querySelector('.btn-primary'); saveBtn.innerText = 'กำลังบันทึก...'; saveBtn.style.opacity = '0.5'; saveBtn.style.pointerEvents = 'none';
+  
+  const saveBtn = document.querySelector('.btn-primary'); 
+  saveBtn.innerText = 'กำลังบันทึก...'; saveBtn.style.opacity = '0.5'; saveBtn.style.pointerEvents = 'none';
+  
   let targetMonthId = plannerMonthId;
-  if (isGuest) {
-    if (realId) { Object.keys(monthsData).forEach(m => { monthsData[m] = monthsData[m].filter(i => !i.id.startsWith(realId)); }); }
-    const newId = 'guest' + Date.now();
-    if (currentOccurrence === 'recurring') { let startIdx = monthOrder.findIndex(m => m.id === targetMonthId); for (let i = startIdx; i < monthOrder.length; i++) { if (!monthsData[monthOrder[i].id]) monthsData[monthOrder[i].id] = []; monthsData[monthOrder[i].id].push({ id: newId + '_' + monthOrder[i].id, name: notes || selectedCategory, amount, type: currentSheetType, category: selectedCategory, icon: selectedCategoryIcon, total_debt: totalDebt, occurrence: currentOccurrence, months: 0 }); } } else if (currentOccurrence === 'installment') { let startIdx = monthOrder.findIndex(m => m.id === targetMonthId); for (let i = 0; i < months; i++) { let tIdx = startIdx + i; if (tIdx < monthOrder.length) { if (!monthsData[monthOrder[tIdx].id]) monthsData[monthOrder[tIdx].id] = []; let remaining = totalDebt - (amount * i); if (remaining < 0) remaining = 0; let remMonths = months - i; monthsData[monthOrder[tIdx].id].push({ id: newId + '_' + monthOrder[tIdx].id, name: notes || selectedCategory, amount, type: currentSheetType, category: selectedCategory, icon: selectedCategoryIcon, total_debt: remaining, occurrence: currentOccurrence, months: remMonths }); } } } else { if (!monthsData[targetMonthId]) monthsData[targetMonthId] = []; monthsData[targetMonthId].push({ id: newId + '_' + targetMonthId, name: notes || selectedCategory, amount, type: currentSheetType, category: selectedCategory, icon: selectedCategoryIcon, total_debt: totalDebt, occurrence: currentOccurrence, months: 0 }); }
-    toggleSheet(false); renderHome(); renderPlanner();
+  let currentIdx = monthOrder.findIndex(m => m.id === targetMonthId);
+  let prevMonthId = currentIdx > 0 ? monthOrder[currentIdx - 1].id : null;
+
+  const payload = { 
+    month_key: targetMonthId, 
+    name: notes || selectedCategory, 
+    notes: notes, 
+    amount, 
+    type: currentSheetType, 
+    category: selectedCategory, 
+    icon: selectedCategoryIcon, 
+    occurrence: currentOccurrence, 
+    total_debt: totalDebt, 
+    start_month: targetMonthId, 
+    months: currentOccurrence === 'installment' ? months : null,
+    end_month: null
+  };
+
+  try {
+    if (isGuest) {
+      const newId = 'guest' + Date.now();
+      if (realId) {
+        if (currentOccurrence === 'recurring') {
+          // Split Recurring for Guest
+          for (let i = currentIdx; i < monthOrder.length; i++) {
+            monthsData[monthOrder[i].id] = monthsData[monthOrder[i].id].filter(item => !item.id.startsWith(realId));
+          }
+          for (let i = currentIdx; i < monthOrder.length; i++) {
+            if (!monthsData[monthOrder[i].id]) monthsData[monthOrder[i].id] = [];
+            monthsData[monthOrder[i].id].push({ id: newId + '_' + monthOrder[i].id, ...payload });
+          }
+        } else {
+          Object.keys(monthsData).forEach(m => { monthsData[m] = monthsData[m].filter(i => !i.id.startsWith(realId)); });
+          if (!monthsData[targetMonthId]) monthsData[targetMonthId] = [];
+          if (currentOccurrence === 'installment') {
+            for (let i = 0; i < months; i++) {
+              let tIdx = currentIdx + i;
+              if (tIdx < monthOrder.length) {
+                let remaining = totalDebt - (amount * i); if (remaining < 0) remaining = 0;
+                monthsData[monthOrder[tIdx].id].push({ id: newId + '_' + monthOrder[tIdx].id, ...payload, total_debt: remaining, months: months - i });
+              }
+            }
+          } else {
+            monthsData[targetMonthId].push({ id: newId + '_' + targetMonthId, ...payload });
+          }
+        }
+      } else {
+        if (currentOccurrence === 'recurring') {
+          for (let i = currentIdx; i < monthOrder.length; i++) {
+            if (!monthsData[monthOrder[i].id]) monthsData[monthOrder[i].id] = [];
+            monthsData[monthOrder[i].id].push({ id: newId + '_' + monthOrder[i].id, ...payload });
+          }
+        } else if (currentOccurrence === 'installment') {
+          for (let i = 0; i < months; i++) {
+            let tIdx = currentIdx + i;
+            if (tIdx < monthOrder.length) {
+              if (!monthsData[monthOrder[tIdx].id]) monthsData[monthOrder[tIdx].id] = [];
+              let remaining = totalDebt - (amount * i); if (remaining < 0) remaining = 0;
+              monthsData[monthOrder[tIdx].id].push({ id: newId + '_' + monthOrder[tIdx].id, ...payload, total_debt: remaining, months: months - i });
+            }
+          }
+        } else {
+          if (!monthsData[targetMonthId]) monthsData[targetMonthId] = [];
+          monthsData[targetMonthId].push({ id: newId + '_' + targetMonthId, ...payload });
+        }
+      }
+    } else {
+      const { data: { session } } = await supabaseClient.auth.getSession(); 
+      payload.user_id = session?.user?.id || null;
+      
+      if (realId) {
+        if (currentOccurrence === 'recurring') {
+          if (prevMonthId) {
+            const { error: updateError } = await supabaseClient.from('transactions').update({ end_month: prevMonthId }).eq('id', realId);
+            if(updateError) throw updateError;
+            const { error: insertError } = await supabaseClient.from('transactions').insert(payload);
+            if(insertError) throw insertError;
+          } else {
+            const { error } = await supabaseClient.from('transactions').update({ amount, notes: payload.notes, name: payload.name }).eq('id', realId);
+            if(error) throw error;
+          }
+        } else {
+          const { error } = await supabaseClient.from('transactions').update(payload).eq('id', realId);
+          if(error) throw error;
+        }
+      } else {
+        const { error } = await supabaseClient.from('transactions').insert(payload);
+        if(error) throw error;
+      }
+    }
+    
+    toggleSheet(false); 
+    if (isGuest) { renderHome(); renderPlanner(); } 
+    else { fetchTransactions(); }
+
+  } catch (error) { 
+    alert("เกิดข้อผิดพลาดในการบันทึก: " + error.message); 
+  } finally {
     saveBtn.innerText = i18n[currentLang].save; saveBtn.style.opacity = '1'; saveBtn.style.pointerEvents = 'auto';
-    return;
   }
-  try { const { data: { session } } = await supabaseClient.auth.getSession(); const payload = { month_key: targetMonthId, name: notes || selectedCategory, notes: notes, amount, type: currentSheetType, category: selectedCategory, icon: selectedCategoryIcon, occurrence: currentOccurrence, total_debt: totalDebt, user_id: session?.user?.id || null, start_month: targetMonthId, months: currentOccurrence === 'installment' ? months : null };
-  if(realId) { const { error } = await supabaseClient.from('transactions').update(payload).eq('id', realId); if(error) throw error; } else { const { error } = await supabaseClient.from('transactions').insert(payload); if(error) throw error; }
-  toggleSheet(false); fetchTransactions(); } catch (error) { alert("เกิดข้อผิดพลาดในการบันทึก: " + error.message); } finally { saveBtn.innerText = i18n[currentLang].save; saveBtn.style.opacity = '1'; saveBtn.style.pointerEvents = 'auto'; }
 }
+
 function toggleSheet(show) { document.getElementById('sheet').classList.toggle('active',show); document.getElementById('overlay').classList.toggle('active',show); }
 function closeSheet() { toggleSheet(false); }
 
