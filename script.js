@@ -1,7 +1,7 @@
 // 🔥 ข้อมูล Supabase ของคุณ
 const SUPABASE_URL = 'https://qgvvvuqugwnarrxzqbsr.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFndnZ2dXF1Z3duYXJyeHpxYnNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5MTkxNjksImV4cCI6MjEwMTQ5NTE2OX0.8wS2ol6DTZYVRLZWHOBNzctuGrEO9OY0xyqRsE8neUo';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = supabase.create_client(SUPABASE_URL, SUPABASE_KEY);
 
 const i18n = { th: { overview:"ภาพรวม", freeCash:"เงินอิสระที่ใช้ได้จริง", safe:"สบายๆ ยังพอผ่อนของได้", healthScore:"สุขภาพการเงิน", emptyHealth:"* เริ่มวางแผนเงินเดือนนี้เพื่อดูคะแนนสุขภาพการเงิน *", cashFlow6m:"แนวโน้มกระแสเงินสด 6 เดือน", waterfallTitle:"เงินหายไปไหน?", select:"เลือก", incTotal:"รายรับรวม", expTotal:"รายจ่ายคงที่", debtTotal:"หนี้สิน/ผ่อน", saveTotal:"เงินเก็บ/ลงทุน", freeCashTotal:"เงินอิสระที่ใช้ได้จริง", income:"รายรับ", expense:"รายจ่าย", debt:"หนี้สิน", savings:"เงินเก็บ", catBank:"หมวดหมู่", totalPrice:"เงินต้น", months:"จำนวนงวด", interestRate:"ดอกเบี้ย (%) ต่อปี", monthlyCalc:"ยอดผ่อนต่อเดือน (คำนวณอัตโนมัติ)", amount:"ยอดเงิน", occurrenceType:"ประเภทการเกิดขึ้น", recurring:"ทุกเดือน", installment:"ผ่อนสินค้า", once:"ครั้งเดียว", save:"บันทึก", deleteItem:"ลบรายการนี้", deleteSelected:"ลบรายการที่เลือก", simulator:"Simulator", scenarioDesc:"จำลองสถานการณ์ก่อนตัดสินใจ", simBuy:"ซื้อของผ่อน", simPayoff:"ปิดหนี้ก้อนนี้", simAdjust:"ปรับงบประมาณ", simPriceLabel:"ราคาของ (เงินต้น)", trend6m:"เทียบกระแสเงินสด 6 เดือนข้างหน้า", beforeSim:"ก่อนผ่อน", afterSim:"หลังผ่อน", currentBal:"เงินอิสระปัจจุบัน", afterSimBal:"หลังผ่อนของ (ต่อเดือน)", cancel:"ยกเลิก", saveToReal:"บันทึกเป็นจริง", back:"ย้อนกลับ", guestUser:"ผู้ใช้ทั่วไป", notLoggedIn:"ยังไม่ได้เข้าสู่ระบบ", loginPrompt:"สมัครสมาชิกหรือเข้าสู่ระบบเพื่อบันทึกข้อมูลของคุณอย่างถาวร", darkMode:"โหมดมืด (Dark Mode)", deductions:"รายการหัก (Optional)" }, en: { overview:"Overview", freeCash:"True Free Cash Flow", safe:"Safe to spend", healthScore:"Financial Health", emptyHealth:"* Start planning this month to see your financial health score *", cashFlow6m:"Cash Flow Trend (6 Months)", waterfallTitle:"Where did money go?", select:"Select", incTotal:"Total Income", expTotal:"Fixed Expenses", debtTotal:"Debt/Installment", saveTotal:"Savings/Invest", freeCashTotal:"True Free Cash Flow", income:"Income", expense:"Expense", debt:"Debt", savings:"Savings", catBank:"Category", totalPrice:"Principal", months:"Months", interestRate:"Interest Rate (%) / Year", monthlyCalc:"Monthly Payment (Auto)", amount:"Amount", occurrenceType:"Occurrence", recurring:"Recurring", installment:"Installment", once:"One-time", save:"Save", deleteItem:"Delete Item", deleteSelected:"Delete Selected", simulator:"Simulator", scenarioDesc:"Simulate before deciding", simBuy:"Buy Installment", simPayoff:"Pay off Debt", simAdjust:"Adjust Budget", simPriceLabel:"Item Price (Principal)", trend6m:"Cash Flow Trend (6 Months)", beforeSim:"Before", afterSim:"After", currentBal:"Current Free Cash", afterSimBal:"After Installment", cancel:"Cancel", saveToReal:"Save to Planner", back:"Back", guestUser:"Guest User", notLoggedIn:"Not logged in", loginPrompt:"Sign up or log in to save your data permanently", darkMode:"Dark Mode", deductions:"Deductions (Optional)" } };
 let currentLang = 'th';
@@ -127,7 +127,6 @@ function formatAmountInput(elem, callback) {
   let formattedVal = val > 0 ? val.toLocaleString() : '';
   elem.value = formattedVal;
   
-  // คำนวณตำแหน่ง Cursor ใหม่
   let lengthDiff = formattedVal.length - originalLength;
   let newCursorPos = cursorPosition + lengthDiff;
   if (newCursorPos < 0) newCursorPos = 0;
@@ -138,6 +137,16 @@ function formatAmountInput(elem, callback) {
   if (typeof callback === 'function') {
     callback();
   }
+}
+
+// ฟังก์ชันจัดการ Input ทศนิยม (สำหรับดอกเบี้ย)
+function formatDecimalInput(elem) {
+  let val = elem.value.replace(/[^0-9.]/g, '');
+  let parts = val.split('.');
+  if (parts.length > 2) {
+    val = parts[0] + '.' + parts.slice(1).join('');
+  }
+  elem.value = val;
 }
 
 function getTotals(monthId) { if (!monthsData[monthId]) return { in_: 0, out: 0, debt: 0, save: 0 }; let t = { in_: 0, out: 0, debt: 0, save: 0 }; monthsData[monthId].forEach(item => { if(item.type==='income') t.in_+=item.amount; else if(item.type==='expense') t.out+=item.amount; else if(item.type==='debt') t.debt+=item.amount; else if(item.type==='savings') t.save+=item.amount; }); return t; }
@@ -194,7 +203,7 @@ function renderHome() {
   let xLabelsHtml = monthOrder.slice(0, 6).map(m => `<span>${currentLang === 'th' ? m.abbrTh : m.abbrEn}</span>`).join('');
   if (document.getElementById('home-chart-xaxis')) document.getElementById('home-chart-xaxis').innerHTML = xLabelsHtml;
 
-  // Waterfall Chart (Fixed Negative)
+  // Waterfall Chart
   let inc = t.in_, exp = t.out, debt = t.debt, save = t.save, bal = inc - exp - debt - save;
   let allVals = [inc, exp, debt, save, bal].filter(v => v !== 0);
   let maxBar = Math.max(...allVals, 0); let minBar = Math.min(...allVals, 0); let barRange = maxBar - minBar || 1;
@@ -358,6 +367,8 @@ function updateScenario() {
   
   if(currentScenarioType==='buy'){ 
     const price=parseNumber(document.getElementById('sc-price').value); const months=parseInt(document.getElementById('sc-months').value)||0; const interest=parseDecimal(document.getElementById('sc-interest').value); 
+    // แสดงผลดอกเบี้ยเป็นทศนิยม 2 ตำแหน่ง
+    document.getElementById('sc-interest').value = interest.toFixed(2);
     if(interest===0) mImp=price/months; else { let i_r=(interest/100)/12; mImp=(price*i_r*Math.pow(1+i_r,months))/(Math.pow(1+i_r,months)-1); } 
     let startIdx = monthOrder.findIndex(m => m.id === selectedScenarioMonthId); if (startIdx === -1) startIdx = 0; 
     for(let i=0;i<6;i++){ if(i >= startIdx) aD.push(bD[i]-mImp); else aD.push(bD[i]); } 
