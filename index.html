@@ -33,6 +33,7 @@
 </div>
 
 <div class="app-container" id="app" style="display: none;">
+  <!-- HOME -->
   <div class="screen active" id="screen-home">
     <div class="header">
       <h1 data-i18n="overview">ภาพรวม</h1>
@@ -70,6 +71,7 @@
     </div>
   </div>
 
+  <!-- PLANNER -->
   <div class="screen" id="screen-planner">
     <div class="header">
       <h1 id="month-title">พฤศจิกายน</h1>
@@ -79,7 +81,7 @@
         <button class="header-btn" id="edit-btn" onclick="toggleSelectMode()" data-i18n="select">เลือก</button>
       </div>
     </div>
-    <div class="glass-card summary-card">
+    <div class="glass-card summary-card" id="summary-card">
       <div class="summary-row"><span class="summary-label"><span class="dot green"></span> <span data-i18n="incTotal">รายรับรวม</span></span><span class="summary-value in" style="color: #30D158;" id="total-income">0 ฿</span></div>
       <div class="summary-row"><span class="summary-label"><span class="dot orange"></span> <span data-i18n="expTotal">รายจ่ายคงที่</span></span><span class="summary-value out" style="color: #FF9F0A;"><span id="total-expense">0 ฿</span><span class="summary-pct" id="pct-expense"></span></span></div>
       <div class="summary-row"><span class="summary-label"><span class="dot red"></span> <span data-i18n="debtTotal">หนี้สิน/ผ่อน</span></span><span class="summary-value debt" style="color: #FF453A;"><span id="total-debt">0 ฿</span><span class="summary-pct" id="pct-debt"></span></span></div>
@@ -94,7 +96,7 @@
     <button class="btn-delete-multi" onclick="deleteSelected()"><span data-i18n="deleteSelected">ลบรายการที่เลือก</span> (<span id="select-count">0</span>)</button>
   </div>
 
-  <!-- BOTTOM SHEET (ฟอร์มเพิ่ม/แก้ไข) -->
+  <!-- BOTTOM SHEET -->
   <div class="overlay" id="overlay" onclick="closeSheet()"></div>
   <div class="bottom-sheet" id="sheet">
     <div class="sheet-handle"></div>
@@ -106,8 +108,7 @@
     </div>
     <input type="hidden" id="editing-id">
     
-    <div class="form-group"><label class="form-label" data-i18n="itemName">ชื่อรายการ</label><input type="text" class="input-field" id="form-name" placeholder="เช่น เงินเดือน, ค่าเช่า"></div>
-    
+    <!-- 1. เลือกหมวดหมู่ก่อน -->
     <div class="form-group" id="category-group">
       <label class="form-label" data-i18n="catBank">หมวดหมู่</label>
       <div class="category-grid" id="category-grid-container"></div>
@@ -117,10 +118,15 @@
     <div id="income-group" style="display:none;">
       <div class="form-group"><label class="form-label">เงินเดือน (Gross)</label><input type="text" class="input-field" id="form-gross" placeholder="0" oninput="calcNetIncome()"></div>
       <div class="form-group"><label class="form-label">รายได้อื่นๆ</label><input type="text" class="input-field" id="form-other-income" placeholder="0" oninput="calcNetIncome()"></div>
-      <div class="form-group"><label class="form-label">ภาษี</label><input type="text" class="input-field" id="form-tax" placeholder="0" oninput="calcNetIncome()"></div>
-      <div class="form-group"><label class="form-label">ประกันสังคม (5% สูงสุด 875)</label><input type="text" class="input-field" id="form-ss" placeholder="0" oninput="calcNetIncome()"></div>
-      <div class="form-group"><label class="form-label">กองทุนสำรองเลี้ยงชีพ (PVD)</label><input type="text" class="input-field" id="form-pvd" placeholder="0" oninput="calcNetIncome()"></div>
-      <div class="form-group"><label class="form-label">กยศ.</label><input type="text" class="input-field" id="form-student-loan" placeholder="0" oninput="calcNetIncome()"></div>
+      
+      <details class="accordion-card">
+        <summary data-i18n="deductions">รายการหัก (Optional)</summary>
+        <div class="form-group"><label class="form-label">ภาษี</label><input type="text" class="input-field" id="form-tax" placeholder="0" oninput="calcNetIncome()"></div>
+        <div class="form-group"><label class="form-label">ประกันสังคม</label><input type="text" class="input-field" id="form-ss" placeholder="0" oninput="calcNetIncome()"></div>
+        <div class="form-group"><label class="form-label">กองทุนสำรองเลี้ยงชีพ (PVD)</label><input type="text" class="input-field" id="form-pvd" placeholder="0" oninput="calcNetIncome()"></div>
+        <div class="form-group"><label class="form-label">กยศ.</label><input type="text" class="input-field" id="form-student-loan" placeholder="0" oninput="calcNetIncome()"></div>
+      </details>
+
       <div class="calc-result" id="calc-net-income" style="display:block;">
         <p>รายได้สุทธิ (เงินเข้ากระเป๋า)</p>
         <h4 id="net-income-val">0 ฿</h4>
@@ -138,9 +144,12 @@
       <div class="calc-result" id="calc-result"><p data-i18n="monthlyCalc">ยอดผ่อนต่อเดือน (คำนวณอัตโนมัติ)</p><h4 id="calc-monthly">0 ฿</h4></div>
     </div>
 
-    <!-- ฟอร์มยอดเงิน (สำหรับรายจ่าย/เงินเก็บ/หนี้สินแบบบัตรเครดิต) -->
+    <!-- 2. ยอดเงิน -->
     <div class="form-group" id="amount-group"><label class="form-label" id="amount-label" data-i18n="amount">ยอดเงิน</label><input type="text" class="input-field" inputmode="numeric" id="form-amount" placeholder="0" style="font-size: 24px; font-weight: 700;"></div>
     
+    <!-- 3. Notes -->
+    <div class="form-group" id="notes-group"><label class="form-label">Notes (รายละเอียดเพิ่มเติม - ไม่ใส่ก็ได้)</label><input type="text" class="input-field" id="form-notes" placeholder="เช่น ค่าก๋วยเตี๋ยวเรือ"></div>
+
     <div class="form-group" id="occurrence-group"><label class="form-label" data-i18n="occurrenceType">ประเภทการเกิดขึ้น</label><div class="toggle-group">
       <div class="toggle-card active" id="tg-recurring" onclick="setOccurrence('recurring')" data-i18n="recurring">ทุกเดือน</div>
       <div class="toggle-card" id="tg-once" onclick="setOccurrence('once')" data-i18n="once">ครั้งเดียว</div>
@@ -150,7 +159,7 @@
     <button class="btn-danger" id="btn-delete" onclick="deleteSingleItem()" data-i18n="deleteItem">ลบรายการนี้</button>
   </div>
 
-  <!-- PREVIEW MODAL (สำหรับ Scenario) -->
+  <!-- PREVIEW MODAL -->
   <div class="overlay" id="preview-overlay" onclick="closePreview()"></div>
   <div class="bottom-sheet" id="preview-sheet" style="z-index: 102;">
     <div class="sheet-handle"></div>
@@ -185,7 +194,8 @@
       </div>
 
       <div id="sc-start-month-ui" style="margin-bottom: 24px;">
-        <div class="slider-container"><span>เริ่มผ่อนเดือน</span><select id="sc-start-month" onchange="updateScenario()" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 8px; font-size: 14px;"></select></div>
+        <div class="slider-container"><span>เริ่มผ่อนเดือน</span></div>
+        <div class="month-chips-container" id="sc-month-chips"></div>
       </div>
     </div>
     <div class="trend-chart">
@@ -227,7 +237,6 @@
   </div>
 </div>
 
-<!-- ลบ ?v=3 ออก เพื่อให้ Service Worker จัดการแคชให้เอง -->
 <script src="script.js"></script>
 <script>
   if ('serviceWorker' in navigator) {
@@ -236,11 +245,10 @@
         console.log('SW Registered');
       }).catch(err => console.log('SW FAIL'));
 
-      // เพิ่มบล็อกนี้: ตรวจสอบว่ามี Service Worker ตัวใหม่เข้ามาควบคุมหน้าเว็บหรือไม่
       let refreshing;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (refreshing) return;
-        window.location.reload(); // ถ้ามีของใหม่ ให้รีเฟรชหน้าเว็บทันทีเลย!
+        window.location.reload();
         refreshing = true;
       });
     });
