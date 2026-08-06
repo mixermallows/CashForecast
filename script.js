@@ -246,7 +246,7 @@ function selectCategory(elem, catName, icon) {
   }
 }
 function setOccurrence(type) { currentOccurrence = type; document.querySelectorAll('.toggle-card').forEach(c => c.classList.remove('active')); if (document.getElementById('tg-'+type)) document.getElementById('tg-'+type).classList.add('active'); }
-function calcNetIncome() { const gross = parseNumber(document.getElementById('form-gross').value); const other = parseNumber(document.getElementById('form-other-income').value); const tax = parseNumber(document.getElementById('form-tax').value); let ss = parseNumber(document.getElementById('form-ss').value); const pvd = parseNumber(document.getElementById('form-pvd').value); const studentLoan = parseNumber(document.getElementById('form-student-loan').value); if (ss === 0 && gross > 0) { ss = gross >= 17500 ? 875 : Math.round(gross * 0.05); document.getElementById('form-ss').value = ss; } const net = gross + other - tax - ss - pvd - studentLoan; document.getElementById('net-income-val').innerText = net.toLocaleString() + ' ฿'; document.getElementById('form-amount').value = net; }
+function calcNetIncome() { const gross = parseNumber(document.getElementById('form-gross').value); const other = parseNumber(document.getElementById('form-other-income').value); const tax = parseNumber(document.getElementById('form-tax').value); let ss = parseNumber(document.getElementById('form-ss').value); const pvd = parseNumber(document.getElementById('form-pvd').value); const studentLoan = parseNumber(document.getElementById('form-student-loan').value); const net = gross + other - tax - ss - pvd - studentLoan; document.getElementById('net-income-val').innerText = net.toLocaleString() + ' ฿'; document.getElementById('form-amount').value = net; }
 function calcInstallment() { const p = parseNumber(document.getElementById('form-total-debt').value); const n = parseInt(document.getElementById('form-months').value) || 0; const r = parseFloat(document.getElementById('form-interest').value) || 0; if (p > 0 && n > 0) { let monthly = 0; if (r === 0) { monthly = p / n; } else { let i = (r / 100) / 12; monthly = p * i * Math.pow(1 + i, n) / (Math.pow(1 + i, n) - 1); } let totalPay = monthly * n; let totalInterest = totalPay - p; document.getElementById('calc-monthly').innerHTML = `${Math.round(monthly).toLocaleString()} ฿ /เดือน<br><span style="font-size:12px; color:#636366; font-weight:400;">ดอกเบี้ยรวม: ${Math.round(totalInterest).toLocaleString()} ฿</span>`; document.getElementById('form-amount').value = Math.round(monthly).toLocaleString(); document.getElementById('calc-result').classList.add('show'); } else { document.getElementById('calc-result').classList.remove('show'); } }
 async function saveItem() {
   const fullId = document.getElementById('editing-id').value; const realId = fullId ? fullId.split('_')[0] : null; const notes = document.getElementById('form-notes').value.trim(); const amount = parseNumber(document.getElementById('form-amount').value); const totalDebt = parseNumber(document.getElementById('form-total-debt').value); const months = parseInt(document.getElementById('form-months').value) || 0;
@@ -315,7 +315,12 @@ function updateScenario() {
   } 
   document.getElementById('chart-lines').innerHTML=`<path d="${pB}" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-dasharray="4" vector-effect="non-scaling-stroke"/><path d="${pA}" fill="none" stroke="#ffffff" stroke-width="3" vector-effect="non-scaling-stroke"/>`; 
   document.getElementById('chart-labels-overlay').innerHTML=lH; 
-  const nBal=cBal+mImp; const nE=document.getElementById('sc-new-bal'); nE.innerText=Math.round(nBal).toLocaleString()+' ฿'; if(nBal<0)nE.style.color='#FF453A'; else if(nBal<2000)nE.style.color='#FF9F0A'; else nE.style.color='#30D158'; 
+    const nBal = currentScenarioType === 'buy' ? cBal - mImp : cBal + mImp;
+  const nE=document.getElementById('sc-new-bal'); 
+  nE.innerText=Math.round(nBal).toLocaleString()+' ฿'; 
+  if(nBal<0)nE.style.color='#FF453A'; 
+  else if(nBal<2000)nE.style.color='#FF9F0A'; 
+  else nE.style.color='#30D158';  
 }
 function showPreview() {
   let previewHtml = `<input type="text" id="preview-name" class="input-field" value="ผ่อนของ (Simulator)" style="margin-bottom:12px;">`;
