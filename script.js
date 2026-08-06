@@ -282,9 +282,16 @@ function updateScenario() {
   
   let allV=[...bD,...aD]; let minV=Math.min(...allV); let maxV=Math.max(...allV); let range=maxV-minV||1; 
   let pB="M0,"+(90-((bD[0]-minV)/range)*80); let pA="M0,"+(90-((aD[0]-minV)/range)*80); let lH=""; 
-  for(let i=0;i<6;i++){ let x=(i/5)*100; let yB=90-((bD[i]-minV)/range)*80; let yA=90-((aD[i]-minV)/range)*80; if(i>0){pB+=` L${x},${yB}`;pA+=` L${x},${yA}`;} lH+=`<text x="${x}" y="${yA-2}" class="chart-val" text-anchor="middle">${Math.round(aD[i]).toLocaleString()}</text>`; } 
+  for(let i=0;i<6;i++){ 
+    let x=(i/5)*100; 
+    let yB=90-((bD[i]-minV)/range)*80; 
+    let yA=90-((aD[i]-minV)/range)*80; 
+    if(i>0){pB+=` L${x},${yB}`;pA+=` L${x},${yA}`;} 
+    // เปลี่ยนจาก SVG Text เป็น HTML Element เพื่อไม่ให้ตัวอักษรบิดเบี้ยว
+    lH+=`<div class="chart-label-overlay" style="left:${x}%; top:${yA}%;">${Math.round(aD[i]).toLocaleString()}</div>`; 
+  } 
   document.getElementById('chart-lines').innerHTML=`<path d="${pB}" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-dasharray="4" vector-effect="non-scaling-stroke"/><path d="${pA}" fill="none" stroke="#ffffff" stroke-width="3" vector-effect="non-scaling-stroke"/>`; 
-  document.getElementById('chart-labels').innerHTML=lH; 
+  document.getElementById('chart-labels-overlay').innerHTML=lH; 
   const nBal=cBal+mImp; const nE=document.getElementById('sc-new-bal'); nE.innerText=Math.round(nBal).toLocaleString()+' ฿'; if(nBal<0)nE.style.color='#FF453A'; else if(nBal<2000)nE.style.color='#FF9F0A'; else nE.style.color='#30D158'; 
 }
 function showPreview() {
