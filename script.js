@@ -3,14 +3,15 @@ const SUPABASE_URL = 'https://qgvvvuqugwnarrxzqbsr.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFndnZ2dXF1Z3duYXJyeHpxYnNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5MTkxNjksImV4cCI6MjEwMTQ5NTE2OX0.8wS2ol6DTZYVRLZWHOBNzctuGrEO9OY0xyqRsE8neUo';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const i18n = { th: { overview:"ภาพรวม", freeCash:"เงินอิสระที่ใช้ได้จริง", safe:"สบายๆ ยังพอผ่อนของได้", healthScore:"สุขภาพการเงิน", crit1:"50 คะแนน: กระแสเงินสดเป็นบวก", crit2:"30 คะแนน: ออม ≥ 10% ของรายได้", crit3:"20 คะแนน: หนี้สิน ≤ 20% ของรายได้", criteriaTitle:"เกณฑ์การให้คะแนน", cashFlow4m:"กระแสเงินสดล่วงหน้า 4 เดือน", select:"เลือก", incTotal:"รายรับรวม", expTotal:"รายจ่ายคงที่", debtTotal:"หนี้สิน/ผ่อน", saveTotal:"เงินเก็บ/ลงทุน", freeCashTotal:"เงินอิสระที่ใช้ได้จริง", income:"รายรับ", expense:"รายจ่าย", debt:"หนี้สิน", savings:"เงินเก็บ", itemName:"ชื่อรายการ", catBank:"หมวดหมู่", totalPrice:"เงินต้น", months:"จำนวนงวด", interestRate:"ดอกเบี้ย (%) ต่อปี", monthlyCalc:"ยอดผ่อนต่อเดือน (คำนวณอัตโนมัติ)", amount:"ยอดเงิน", occurrenceType:"ประเภทการเกิดขึ้น", recurring:"ทุกเดือน", installment:"ผ่อนสินค้า", once:"ครั้งเดียว", save:"บันทึก", deleteItem:"ลบรายการนี้", deleteSelected:"ลบรายการที่เลือก", scenario:"Scenario", scenarioDesc:"จำลองสถานการณ์ก่อนตัดสินใจ", simBuy:"ซื้อของผ่อน", simPayoff:"ปิดหนี้ก้อนนี้", simAdjust:"ปรับงบประมาณ", simPriceLabel:"ราคาของ (เงินต้น)", trend4m:"เทียบกระแสเงินสด 4 เดือนข้างหน้า", beforeSim:"ก่อนผ่อน", afterSim:"หลังผ่อน", currentBal:"เงินอิสระปัจจุบัน", afterSimBal:"หลังผ่อนของ (ต่อเดือน)", cancel:"ยกเลิก", saveToReal:"บันทึกเป็นจริง", home:"Home", planner:"Planner", back:"ย้อนกลับ", guestUser:"ผู้ใช้ทั่วไป", notLoggedIn:"ยังไม่ได้เข้าสู่ระบบ", loginPrompt:"สมัครสมาชิกหรือเข้าสู่ระบบเพื่อบันทึกข้อมูลของคุณอย่างถาวร", darkMode:"โหมดมืด (Dark Mode)", splashSlogan:"วางแผนล่วงหน้า ตัดสินใจอย่างมั่นใจ" }, en: { overview:"Overview", freeCash:"True Free Cash Flow", safe:"Safe to spend", healthScore:"Financial Health", crit1:"50 pts: Positive Cash Flow", crit2:"30 pts: Save ≥ 10% of Income", crit3:"20 pts: Debt ≤ 20% of Income", criteriaTitle:"Scoring Criteria", cashFlow4m:"Cash Flow Forecast (4 Months)", select:"Select", incTotal:"Total Income", expTotal:"Fixed Expenses", debtTotal:"Debt/Installment", saveTotal:"Savings/Invest", freeCashTotal:"True Free Cash Flow", income:"Income", expense:"Expense", debt:"Debt", savings:"Savings", itemName:"Item Name", catBank:"Category", totalPrice:"Principal", months:"Months", interestRate:"Interest Rate (%) / Year", monthlyCalc:"Monthly Payment (Auto-Calculated)", amount:"Amount", occurrenceType:"Occurrence", recurring:"Recurring", installment:"Installment", once:"One-time", save:"Save", deleteItem:"Delete Item", deleteSelected:"Delete Selected", scenario:"Scenario", scenarioDesc:"Simulate before deciding", simBuy:"Buy Installment", simPayoff:"Pay off Debt", simAdjust:"Adjust Budget", simPriceLabel:"Item Price (Principal)", trend4m:"Cash Flow Trend (4 Months)", beforeSim:"Before", afterSim:"After", currentBal:"Current Free Cash", afterSimBal:"After Installment (Monthly)", cancel:"Cancel", saveToReal:"Save to Planner", home:"Home", planner:"Planner", back:"Back", guestUser:"Guest User", notLoggedIn:"Not logged in", loginPrompt:"Sign up or log in to save your data permanently", darkMode:"Dark Mode", splashSlogan:"Plan ahead, decide with confidence" } };
+const i18n = { th: { overview:"ภาพรวม", freeCash:"เงินอิสระที่ใช้ได้จริง", safe:"สบายๆ ยังพอผ่อนของได้", healthScore:"สุขภาพการเงิน", crit1:"50 คะแนน: กระแสเงินสดเป็นบวก", crit2:"30 คะแนน: ออม ≥ 10% ของรายได้", crit3:"20 คะแนน: หนี้สิน ≤ 20% ของรายได้", criteriaTitle:"เกณฑ์การให้คะแนน", cashFlow4m:"กระแสเงินสดล่วงหน้า 4 เดือน", select:"เลือก", incTotal:"รายรับรวม", expTotal:"รายจ่ายคงที่", debtTotal:"หนี้สิน/ผ่อน", saveTotal:"เงินเก็บ/ลงทุน", freeCashTotal:"เงินอิสระที่ใช้ได้จริง", income:"รายรับ", expense:"รายจ่าย", debt:"หนี้สิน", savings:"เงินเก็บ", catBank:"หมวดหมู่", totalPrice:"เงินต้น", months:"จำนวนงวด", interestRate:"ดอกเบี้ย (%) ต่อปี", monthlyCalc:"ยอดผ่อนต่อเดือน (คำนวณอัตโนมัติ)", amount:"ยอดเงิน", occurrenceType:"ประเภทการเกิดขึ้น", recurring:"ทุกเดือน", installment:"ผ่อนสินค้า", once:"ครั้งเดียว", save:"บันทึก", deleteItem:"ลบรายการนี้", deleteSelected:"ลบรายการที่เลือก", scenario:"Scenario", scenarioDesc:"จำลองสถานการณ์ก่อนตัดสินใจ", simBuy:"ซื้อของผ่อน", simPayoff:"ปิดหนี้ก้อนนี้", simAdjust:"ปรับงบประมาณ", simPriceLabel:"ราคาของ (เงินต้น)", trend4m:"เทียบกระแสเงินสด 4 เดือนข้างหน้า", beforeSim:"ก่อนผ่อน", afterSim:"หลังผ่อน", currentBal:"เงินอิสระปัจจุบัน", afterSimBal:"หลังผ่อนของ (ต่อเดือน)", cancel:"ยกเลิก", saveToReal:"บันทึกเป็นจริง", home:"Home", planner:"Planner", back:"ย้อนกลับ", guestUser:"ผู้ใช้ทั่วไป", notLoggedIn:"ยังไม่ได้เข้าสู่ระบบ", loginPrompt:"สมัครสมาชิกหรือเข้าสู่ระบบเพื่อบันทึกข้อมูลของคุณอย่างถาวร", darkMode:"โหมดมืด (Dark Mode)", splashSlogan:"วางแผนล่วงหน้า ตัดสินใจอย่างมั่นใจ", deductions:"รายการหัก (Optional)" }, en: { overview:"Overview", freeCash:"True Free Cash Flow", safe:"Safe to spend", healthScore:"Financial Health", crit1:"50 pts: Positive Cash Flow", crit2:"30 pts: Save ≥ 10% of Income", crit3:"20 pts: Debt ≤ 20% of Income", criteriaTitle:"Scoring Criteria", cashFlow4m:"Cash Flow Forecast (4 Months)", select:"Select", incTotal:"Total Income", expTotal:"Fixed Expenses", debtTotal:"Debt/Installment", saveTotal:"Savings/Invest", freeCashTotal:"True Free Cash Flow", income:"Income", expense:"Expense", debt:"Debt", savings:"Savings", catBank:"Category", totalPrice:"Principal", months:"Months", interestRate:"Interest Rate (%) / Year", monthlyCalc:"Monthly Payment (Auto-Calculated)", amount:"Amount", occurrenceType:"Occurrence", recurring:"Recurring", installment:"Installment", once:"One-time", save:"Save", deleteItem:"Delete Item", deleteSelected:"Delete Selected", scenario:"Scenario", scenarioDesc:"Simulate before deciding", simBuy:"Buy Installment", simPayoff:"Pay off Debt", simAdjust:"Adjust Budget", simPriceLabel:"Item Price (Principal)", trend4m:"Cash Flow Trend (4 Months)", beforeSim:"Before", afterSim:"After", currentBal:"Current Free Cash", afterSimBal:"After Installment (Monthly)", cancel:"Cancel", saveToReal:"Save to Planner", home:"Home", planner:"Planner", back:"Back", guestUser:"Guest User", notLoggedIn:"Not logged in", loginPrompt:"Sign up or log in to save your data permanently", darkMode:"Dark Mode", splashSlogan:"Plan ahead, decide with confidence", deductions:"Deductions (Optional)" } };
 let currentLang = 'th';
 
 const monthNamesTh = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
 const monthNamesEn = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const monthAbbrTh = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-let monthOrder = [];
-let currentMonth = "";
+const monthAbbrEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+let monthOrder = []; // [{ id: '2024-11', th: 'พฤศจิกายน 2567', en: 'November 2024', abbrTh: 'พ.ย.', abbrEn: 'Nov' }]
+let currentMonthId = "";
 const useBE = true;
 
 function generateMonths() {
@@ -18,18 +19,25 @@ function generateMonths() {
   monthOrder = [];
   for(let i=0; i<6; i++) {
     let d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-    let year = useBE ? d.getFullYear() + 543 : d.getFullYear();
-    let mName = currentLang === 'th' ? monthNamesTh[d.getMonth()] : monthNamesEn[d.getMonth()];
-    monthOrder.push(`${mName} ${year}`);
+    let yAd = d.getFullYear();
+    let yBe = yAd + 543;
+    let id = `${yAd}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    monthOrder.push({
+      id: id,
+      th: `${monthNamesTh[d.getMonth()]} ${yBe}`,
+      en: `${monthNamesEn[d.getMonth()]} ${yAd}`,
+      abbrTh: monthAbbrTh[d.getMonth()],
+      abbrEn: monthAbbrEn[d.getMonth()]
+    });
   }
-  currentMonth = monthOrder[0];
+  currentMonthId = monthOrder[0].id;
 }
 generateMonths();
 
 let monthsData = {}; 
 let isGuest = false;
 setTimeout(() => { document.getElementById('splash').classList.add('hide'); }, 2000); 
-let currentSheetType = 'income', selectedCategory = '', currentOccurrence = 'recurring', isSelectMode = false, selectedItems = new Set(), currentScenarioType = 'buy', plannerMonth = "";
+let currentSheetType = 'income', selectedCategory = '', selectedCategoryIcon = '💰', currentOccurrence = 'recurring', isSelectMode = false, selectedItems = new Set(), currentScenarioType = 'buy', plannerMonthId = "", selectedScenarioMonthId = "";
 
 // --- AUTHENTICATION ---
 function showOnboarding() { document.getElementById('screen-onboarding').style.display = 'flex'; document.getElementById('app').style.display = 'none'; }
@@ -57,7 +65,7 @@ function continueAsGuest() {
   document.getElementById('screen-onboarding').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.querySelector('.nav-btn').classList.add('active');
-  plannerMonth = currentMonth; applyLang(); renderHome(); renderPlanner();
+  plannerMonthId = currentMonthId; applyLang(); renderHome(); renderPlanner();
 }
 async function checkAuthState() {
   const { data: { session } } = await supabaseClient.auth.getSession();
@@ -66,7 +74,7 @@ async function checkAuthState() {
     document.getElementById('screen-onboarding').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     document.querySelector('.nav-btn').classList.add('active');
-    plannerMonth = currentMonth;
+    plannerMonthId = currentMonthId;
     document.getElementById('profile-name').innerText = session.user.email || "User";
     document.getElementById('profile-email').innerText = "ล็อกอินแล้ว";
     document.getElementById('btn-logout').style.display = 'block';
@@ -80,7 +88,7 @@ async function checkAuthState() {
 }
 checkAuthState();
 
-// --- CATEGORIES (Grid 2 Rows) ---
+// --- CATEGORIES ---
 const categories = {
   income: [{name: 'เงินเดือน', icon: '💰'}, {name: 'รายได้เสริม', icon: '💼'}, {name: 'โบนัส', icon: '🎁'}],
   expense: [
@@ -103,19 +111,18 @@ async function fetchTransactions() {
   if (error) { console.error(error); return; }
   
   monthsData = {};
-  monthOrder.forEach(m => monthsData[m] = []);
+  monthOrder.forEach(m => monthsData[m.id] = []);
 
   data.forEach(item => {
-    let startIdx = monthOrder.indexOf(item.start_month || item.month_key);
+    let startIdx = monthOrder.findIndex(m => m.id === (item.start_month || item.month_key));
     if (startIdx === -1) startIdx = 0;
 
     if (item.occurrence === 'recurring') {
       for (let i = startIdx; i < monthOrder.length; i++) {
-        monthsData[monthOrder[i]].push({ id: item.id + '_' + monthOrder[i], name: item.name, amount: parseFloat(item.amount), type: item.type, occurrence: item.occurrence, category: item.category, total_debt: parseFloat(item.total_debt || 0) });
+        monthsData[monthOrder[i].id].push({ id: item.id + '_' + monthOrder[i].id, name: item.notes || item.category, amount: parseFloat(item.amount), type: item.type, occurrence: item.occurrence, category: item.category, icon: item.icon || '💰', total_debt: parseFloat(item.total_debt || 0), months: item.months || 0 });
       }
     } else if (item.occurrence === 'once') {
-      let mIdx = monthOrder.indexOf(item.month_key);
-      if (mIdx !== -1) monthsData[item.month_key].push({ id: item.id + '_' + item.month_key, name: item.name, amount: parseFloat(item.amount), type: item.type, occurrence: item.occurrence, category: item.category, total_debt: parseFloat(item.total_debt || 0) });
+      if (monthsData[item.month_key]) monthsData[item.month_key].push({ id: item.id + '_' + item.month_key, name: item.notes || item.category, amount: parseFloat(item.amount), type: item.type, occurrence: item.occurrence, category: item.category, icon: item.icon || '💰', total_debt: parseFloat(item.total_debt || 0), months: 0 });
     } else if (item.occurrence === 'installment') {
       let totalMonths = item.months || 0;
       for (let i = 0; i < totalMonths; i++) {
@@ -125,7 +132,8 @@ async function fetchTransactions() {
           let monthlyPay = parseFloat(item.amount);
           let remaining = principal - (monthlyPay * i);
           if (remaining < 0) remaining = 0;
-          monthsData[monthOrder[targetIdx]].push({ id: item.id + '_' + monthOrder[targetIdx], name: item.name, amount: monthlyPay, type: item.type, occurrence: item.occurrence, category: item.category, total_debt: remaining });
+          let remainingMonths = totalMonths - i;
+          monthsData[monthOrder[targetIdx].id].push({ id: item.id + '_' + monthOrder[targetIdx].id, name: item.notes || item.category, amount: monthlyPay, type: item.type, occurrence: item.occurrence, category: item.category, icon: item.icon || '💳', total_debt: remaining, months: remainingMonths });
         }
       }
     }
@@ -134,10 +142,10 @@ async function fetchTransactions() {
 }
 
 function parseNumber(str) { if (!str) return 0; return parseInt(str.toString().replace(/[^0-9]/g, '')) || 0; }
-function getTotals(month) {
-  if (!monthsData[month]) return { in_: 0, out: 0, debt: 0, save: 0 };
+function getTotals(monthId) {
+  if (!monthsData[monthId]) return { in_: 0, out: 0, debt: 0, save: 0 };
   let t = { in_: 0, out: 0, debt: 0, save: 0 };
-  monthsData[month].forEach(item => { 
+  monthsData[monthId].forEach(item => { 
     if(item.type==='income') t.in_+=item.amount; 
     else if(item.type==='expense') t.out+=item.amount; 
     else if(item.type==='debt') t.debt+=item.amount; 
@@ -145,19 +153,24 @@ function getTotals(month) {
   });
   return t;
 }
-function getProjectedCash(i) { return getTotals(monthOrder[i]).in_ - getTotals(monthOrder[i]).out - getTotals(monthOrder[i]).debt - getTotals(monthOrder[i]).save; }
+function getProjectedCash(i) { return getTotals(monthOrder[i].id).in_ - getTotals(monthOrder[i].id).out - getTotals(monthOrder[i].id).debt - getTotals(monthOrder[i].id).save; }
 
 function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(elem => { const key = elem.getAttribute('data-i18n'); if (i18n[currentLang][key]) elem.innerText = i18n[currentLang][key]; });
   document.getElementById('lang-btn').innerText = currentLang.toUpperCase();
-  if (document.getElementById('app').style.display !== 'none') { renderHome(); renderPlanner(); }
+  if (document.getElementById('app').style.display !== 'none') { renderHome(); renderPlanner(); renderScenarioMonthChips(); }
 }
-function toggleLang() { currentLang = currentLang === 'th' ? 'en' : 'th'; applyLang(); populateStartMonths(); }
+function toggleLang() { currentLang = currentLang === 'th' ? 'en' : 'th'; applyLang(); }
 
 function renderHome() {
-  const t = getTotals(currentMonth);
+  const t = getTotals(currentMonthId);
   const freeCash = t.in_ - t.out - t.debt - t.save;
-  document.getElementById('home-free-cash').innerHTML = freeCash.toLocaleString() + '<span>฿</span>';
+  const freeCashElem = document.getElementById('home-free-cash');
+  const heroElem = document.querySelector('.hero');
+  freeCashElem.innerHTML = freeCash.toLocaleString() + '<span>฿</span>';
+  
+  if (freeCash < 0) heroElem.classList.add('negative'); else heroElem.classList.remove('negative');
+
   const badge = document.getElementById('home-badge');
   if (freeCash < 0) { badge.className = 'badge red'; badge.innerText = currentLang==='th'?'ระวัง! กระแสเงินสดติดลบ':'Warning! Negative Cash Flow'; } 
   else if (freeCash < 5000) { badge.className = 'badge orange'; badge.innerText = currentLang==='th'?'เหลือน้อย ควรระวัง':'Low balance, be careful'; } 
@@ -180,26 +193,34 @@ function renderHome() {
   for(let i=0; i<4; i++) {
     let val = getProjectedCash(i);
     let height = Math.max(5, Math.min(100, (val / 20000) * 100)); if(val < 0) height = 5;
-    let mName = monthOrder[i].split(" ")[0];
-    let mIdx = monthNamesTh.indexOf(mName);
-    let shortName = monthAbbrTh[mIdx] || mName.substring(0, 3);
-    chartHtml += `<div class="bar-group"><div class="bar" style="height: ${height}%; background: ${val < 0 ? '#FF453A' : '#0A84FF'};"><span>${val.toLocaleString()}</span></div><div class="bar-label">${shortName}</div></div>`;
+    let color = val < 0 ? '#FF453A' : val < 5000 ? '#FF9F0A' : '#0A84FF';
+    let m = monthOrder[i];
+    let shortName = currentLang === 'th' ? m.abbrTh : m.abbrEn;
+    chartHtml += `<div class="bar-group"><div class="bar" style="height: ${height}%; background: ${color};"><span>${val.toLocaleString()}</span></div><div class="bar-label">${shortName}</div></div>`;
   }
   document.getElementById('home-chart').innerHTML = chartHtml;
 }
 
 function renderPlanner() {
-  document.getElementById('month-title').innerText = plannerMonth;
-  const t = getTotals(plannerMonth);
+  const mObj = monthOrder.find(m => m.id === plannerMonthId);
+  document.getElementById('month-title').innerText = currentLang === 'th' ? mObj.th : mObj.en;
+  
+  const t = getTotals(plannerMonthId);
   document.getElementById('total-income').innerText = t.in_.toLocaleString() + ' ฿';
   document.getElementById('total-expense').innerText = t.out.toLocaleString() + ' ฿';
   document.getElementById('total-debt').innerText = t.debt.toLocaleString() + ' ฿';
   document.getElementById('total-save').innerText = t.save.toLocaleString() + ' ฿';
-  document.getElementById('total-balance').innerText = (t.in_ - t.out - t.debt - t.save).toLocaleString() + ' ฿';
+  
+  const balance = t.in_ - t.out - t.debt - t.save;
+  const balElem = document.getElementById('total-balance');
+  const sumCard = document.getElementById('summary-card');
+  balElem.innerText = balance.toLocaleString() + ' ฿';
+  if (balance < 0) sumCard.classList.add('negative'); else sumCard.classList.remove('negative');
+
   if (t.in_ > 0) { document.getElementById('pct-expense').innerText = `(${((t.out/t.in_)*100).toFixed(1)}%)`; document.getElementById('pct-debt').innerText = `(${((t.debt/t.in_)*100).toFixed(1)}%)`; document.getElementById('pct-save').innerText = `(${((t.save/t.in_)*100).toFixed(1)}%)`; } 
   else { document.getElementById('pct-expense').innerText=''; document.getElementById('pct-debt').innerText=''; document.getElementById('pct-save').innerText=''; }
 
-  const data = monthsData[plannerMonth] || [];
+  const data = monthsData[plannerMonthId] || [];
   let html = '';
   if (data.length === 0) html = `<div class="glass-card" style="padding: 32px 24px; text-align: center; margin-top: 24px;"><h3 style="font-size: 18px;">No Items</h3><p style="font-size: 14px; color: var(--text-muted);">Tap + to start planning</p></div>`;
 
@@ -209,9 +230,12 @@ function renderPlanner() {
     if (items.length > 0) {
       html += `<div class="section-title">${type.title}</div>`;
       items.forEach(item => {
-        let icon = type.key === 'income' ? '💰' : type.key === 'expense' ? '🏠' : type.key === 'debt' ? '💳' : '🐷';
+        let icon = item.icon || '💰';
         let tagHtml = `<span class="tag ${item.occurrence}">${i18n[currentLang][item.occurrence]}</span>`;
-        let subText = item.category || 'General'; if (item.total_debt > 0) subText += ` | ${currentLang==='th'?'เหลือ':'Left'} ${item.total_debt.toLocaleString()} ฿`;
+        let subText = item.category || 'General'; 
+        if (item.total_debt > 0 && item.occurrence === 'installment') subText += ` | ${currentLang==='th'?'เหลือ':'Left'} ${item.total_debt.toLocaleString()} ฿ / ${item.months} ${currentLang==='th'?'งวด':'mo'}`;
+        else if (item.total_debt > 0) subText += ` | ${currentLang==='th'?'เหลือ':'Left'} ${item.total_debt.toLocaleString()} ฿`;
+        
         let checkboxHtml = isSelectMode ? `<div class="custom-checkbox ${selectedItems.has(item.id) ? 'checked' : ''}" onclick="event.stopPropagation(); toggleSelect('${item.id}')"></div>` : '';
         html += `<div class="list-item" onclick="openSheetForEdit('${item.id}')">${checkboxHtml}<div class="list-left" style="${isSelectMode?'margin-left:8px;':''}"><div class="icon-circle">${icon}</div><div class="list-text"><p>${item.name} ${tagHtml}</p><span class="sub">${subText}</span></div></div><div class="amount ${type.class}">${type.key === 'income' ? '+' : '-'}${item.amount.toLocaleString()} ฿</div></div>`;
       });
@@ -244,29 +268,36 @@ function switchScreen(screenName, event) {
   if(event && event.currentTarget && event.currentTarget.classList.contains('nav-btn')) event.currentTarget.classList.add('active');
   else if (screenName === 'home') document.querySelector('.nav-btn').classList.add('active');
   document.getElementById('app').style.backgroundColor = screenName === 'scenario' ? '#2d1b69' : 'var(--bg-color)';
-  if (screenName === 'home') renderHome(); if (screenName === 'planner') renderPlanner(); if (screenName === 'scenario') { populateStartMonths(); updateScenario(); }
+  if (screenName === 'home') renderHome(); if (screenName === 'planner') renderPlanner(); if (screenName === 'scenario') { renderScenarioMonthChips(); updateScenario(); }
 }
-function navigateMonth(direction) { let index = monthOrder.indexOf(plannerMonth); let newIndex = index + direction; if (newIndex >= 0 && newIndex < monthOrder.length) { plannerMonth = monthOrder[newIndex]; renderPlanner(); } }
+function navigateMonth(direction) { let index = monthOrder.findIndex(m => m.id === plannerMonthId); let newIndex = index + direction; if (newIndex >= 0 && newIndex < monthOrder.length) { plannerMonthId = monthOrder[newIndex].id; renderPlanner(); } }
 
 // --- FORM LOGIC ---
-function openSheetForAdd() { document.getElementById('editing-id').value=''; document.getElementById('form-name').value=''; document.getElementById('form-amount').value=''; document.getElementById('form-total-debt').value=''; document.getElementById('form-months').value=''; document.getElementById('form-interest').value=''; document.getElementById('btn-delete').style.display='none'; document.getElementById('calc-result').classList.remove('show'); document.getElementById('net-income-val').innerText = '0 ฿'; document.getElementById('form-gross').value=''; document.getElementById('form-other-income').value=''; document.getElementById('form-tax').value=''; document.getElementById('form-ss').value=''; document.getElementById('form-pvd').value=''; document.getElementById('form-student-loan').value=''; switchSheetType('income'); toggleSheet(true); }
+function openSheetForAdd() { 
+  document.getElementById('editing-id').value=''; document.getElementById('form-amount').value=''; document.getElementById('form-total-debt').value=''; document.getElementById('form-months').value=''; document.getElementById('form-interest').value=''; document.getElementById('form-notes').value=''; 
+  document.getElementById('btn-delete').style.display='none'; document.getElementById('calc-result').classList.remove('show'); document.getElementById('net-income-val').innerText = '0 ฿'; 
+  document.getElementById('form-gross').value=''; document.getElementById('form-other-income').value=''; document.getElementById('form-tax').value=''; document.getElementById('form-ss').value=''; document.getElementById('form-pvd').value=''; document.getElementById('form-student-loan').value=''; 
+  switchSheetType('income'); toggleSheet(true); 
+}
 function openSheetForEdit(itemId) { 
   if(isSelectMode) return; 
-  const item = (monthsData[plannerMonth]||[]).find(i => i.id === itemId); 
+  const item = (monthsData[plannerMonthId]||[]).find(i => i.id === itemId); 
   if(!item) return; 
   document.getElementById('editing-id').value=item.id; 
-  document.getElementById('form-name').value=item.name; 
   document.getElementById('form-amount').value=item.amount.toLocaleString(); 
   document.getElementById('form-total-debt').value=item.total_debt>0?item.total_debt.toLocaleString():''; 
+  document.getElementById('form-notes').value = item.name === item.category ? '' : item.name;
   document.getElementById('btn-delete').style.display='block'; 
   setOccurrence(item.occurrence||'recurring'); 
-  switchSheetType(item.type, item.category); 
+  switchSheetType(item.type, item.category, item.icon); 
   toggleSheet(true); 
 }
-function switchSheetType(type, preselectCat=null) {
+function switchSheetType(type, preselectCat=null, preselectIcon=null) {
   currentSheetType = type;
   document.querySelectorAll('.sheet-seg-btn').forEach(btn => { btn.classList.remove('active','income','expense','debt','savings'); if(btn.getAttribute('data-i18n')===type) btn.classList.add('active',type); });
   
+  document.getElementById('notes-group').style.display = 'block';
+
   if (type === 'income') {
     document.getElementById('income-group').style.display = 'block';
     document.getElementById('amount-group').style.display = 'none';
@@ -274,7 +305,7 @@ function switchSheetType(type, preselectCat=null) {
     document.getElementById('occurrence-group').style.display = 'block';
   } else if (type === 'debt') {
     document.getElementById('income-group').style.display = 'none';
-    document.getElementById('amount-group').style.display = 'none'; // Hidden by default until category selected
+    document.getElementById('amount-group').style.display = 'none'; 
     document.getElementById('installment-group').style.display = 'none';
     document.getElementById('occurrence-group').style.display = 'none';
   } else {
@@ -285,24 +316,25 @@ function switchSheetType(type, preselectCat=null) {
   }
 
   const cats = categories[type];
-  let gridHtml = cats.map(c => `<div class="cat-btn" onclick="selectCategory(this, '${c.name}')"><span class="icon">${c.icon}</span><span class="label">${c.name}</span></div>`).join('');
+  let gridHtml = cats.map(c => `<div class="cat-btn" onclick="selectCategory(this, '${c.name}', '${c.icon}')"><span class="icon">${c.icon}</span><span class="label">${c.name}</span></div>`).join('');
   document.getElementById('category-grid-container').innerHTML = gridHtml;
   
-  // Auto-select first category
   let targetCat = preselectCat || cats[0].name;
+  let targetIcon = preselectIcon || cats[0].icon;
   let btns = document.querySelectorAll('.cat-btn');
   for (let i = 0; i < btns.length; i++) {
     if (btns[i].querySelector('.label').innerText === targetCat) {
-      selectCategory(btns[i], targetCat);
+      selectCategory(btns[i], targetCat, targetIcon);
       break;
     }
   }
 }
 
-function selectCategory(elem, catName) {
+function selectCategory(elem, catName, icon) {
   document.querySelectorAll('.cat-btn').forEach(c => c.classList.remove('active'));
   elem.classList.add('active');
-  selectedCategory = catName; // No Autofill!
+  selectedCategory = catName;
+  selectedCategoryIcon = icon;
 
   if (currentSheetType === 'debt') {
     if (catName === 'สินเชื่อ' || catName === 'ผ่อน') {
@@ -347,7 +379,7 @@ function calcInstallment() {
     if (r === 0) { monthly = p / n; } 
     else { let i = (r / 100) / 12; monthly = p * i * Math.pow(1 + i, n) / (Math.pow(1 + i, n) - 1); }
     let totalPay = monthly * n; let totalInterest = totalPay - p; 
-    document.getElementById('calc-monthly').innerHTML = `${Math.round(monthly).toLocaleString()} ฿ /เดือn<br><span style="font-size:12px; color:#636366; font-weight:400;">ดอกเบี้ยรวม: ${Math.round(totalInterest).toLocaleString()} ฿</span>`;
+    document.getElementById('calc-monthly').innerHTML = `${Math.round(monthly).toLocaleString()} ฿ /เดือน<br><span style="font-size:12px; color:#636366; font-weight:400;">ดอกเบี้ยรวม: ${Math.round(totalInterest).toLocaleString()} ฿</span>`;
     document.getElementById('form-amount').value = Math.round(monthly).toLocaleString();
     document.getElementById('calc-result').classList.add('show');
   } else { document.getElementById('calc-result').classList.remove('show'); }
@@ -356,36 +388,37 @@ function calcInstallment() {
 async function saveItem() {
   const fullId = document.getElementById('editing-id').value; 
   const realId = fullId ? fullId.split('_')[0] : null; 
-  const name = document.getElementById('form-name').value.trim(); 
+  const notes = document.getElementById('form-notes').value.trim(); 
   const amount = parseNumber(document.getElementById('form-amount').value); 
   const totalDebt = parseNumber(document.getElementById('form-total-debt').value);
   const months = parseInt(document.getElementById('form-months').value) || 0;
   
-  if(!name || amount <= 0){alert('กรุณากรอกชื่อรายการและยอดเงินให้ถูกต้อง');return;}
+  if(amount <= 0){alert('กรุณาใส่ยอดเงินให้ถูกต้อง');return;}
   
-  let targetMonth = (currentOccurrence === 'recurring' || currentOccurrence === 'installment') ? plannerMonth : plannerMonth;
+  let targetMonthId = (currentOccurrence === 'recurring' || currentOccurrence === 'installment') ? plannerMonthId : plannerMonthId;
   
   if (isGuest) {
     const newId = 'guest' + Date.now();
     if (currentOccurrence === 'recurring') {
-      let startIdx = monthOrder.indexOf(targetMonth);
+      let startIdx = monthOrder.findIndex(m => m.id === targetMonthId);
       for (let i = startIdx; i < monthOrder.length; i++) {
-        if (!monthsData[monthOrder[i]]) monthsData[monthOrder[i]] = [];
-        monthsData[monthOrder[i]].push({ id: newId + '_' + monthOrder[i], name, amount, type: currentSheetType, category: selectedCategory, total_debt: totalDebt, occurrence: currentOccurrence });
+        if (!monthsData[monthOrder[i].id]) monthsData[monthOrder[i].id] = [];
+        monthsData[monthOrder[i].id].push({ id: newId + '_' + monthOrder[i].id, name: notes || selectedCategory, amount, type: currentSheetType, category: selectedCategory, icon: selectedCategoryIcon, total_debt: totalDebt, occurrence: currentOccurrence, months: 0 });
       }
     } else if (currentOccurrence === 'installment') {
-      let startIdx = monthOrder.indexOf(targetMonth);
+      let startIdx = monthOrder.findIndex(m => m.id === targetMonthId);
       for (let i = 0; i < months; i++) {
         let tIdx = startIdx + i;
         if (tIdx < monthOrder.length) {
-          if (!monthsData[monthOrder[tIdx]]) monthsData[monthOrder[tIdx]] = [];
+          if (!monthsData[monthOrder[tIdx].id]) monthsData[monthOrder[tIdx].id] = [];
           let remaining = totalDebt - (amount * i); if (remaining < 0) remaining = 0;
-          monthsData[monthOrder[tIdx]].push({ id: newId + '_' + monthOrder[tIdx], name, amount, type: currentSheetType, category: selectedCategory, total_debt: remaining, occurrence: currentOccurrence });
+          let remMonths = months - i;
+          monthsData[monthOrder[tIdx].id].push({ id: newId + '_' + monthOrder[tIdx].id, name: notes || selectedCategory, amount, type: currentSheetType, category: selectedCategory, icon: selectedCategoryIcon, total_debt: remaining, occurrence: currentOccurrence, months: remMonths });
         }
       }
     } else {
-      if (!monthsData[targetMonth]) monthsData[targetMonth] = [];
-      monthsData[targetMonth].push({ id: newId + '_' + targetMonth, name, amount, type: currentSheetType, category: selectedCategory, total_debt: totalDebt, occurrence: currentOccurrence });
+      if (!monthsData[targetMonthId]) monthsData[targetMonthId] = [];
+      monthsData[targetMonthId].push({ id: newId + '_' + targetMonthId, name: notes || selectedCategory, amount, type: currentSheetType, category: selectedCategory, icon: selectedCategoryIcon, total_debt: totalDebt, occurrence: currentOccurrence, months: 0 });
     }
     toggleSheet(false); renderHome(); renderPlanner();
     return;
@@ -394,9 +427,9 @@ async function saveItem() {
   try {
     const { data: { session } } = await supabaseClient.auth.getSession(); 
     const payload = { 
-      month_key: targetMonth, name, amount, type: currentSheetType, category: selectedCategory, 
+      month_key: targetMonthId, name: notes || selectedCategory, notes: notes, amount, type: currentSheetType, category: selectedCategory, icon: selectedCategoryIcon,
       occurrence: currentOccurrence, total_debt: totalDebt, user_id: session?.user?.id || null,
-      start_month: targetMonth, months: currentOccurrence === 'installment' ? months : null
+      start_month: targetMonthId, months: currentOccurrence === 'installment' ? months : null
     };
     if(realId) { const { error } = await supabaseClient.from('transactions').update(payload).eq('id', realId); if(error) throw error; } 
     else { const { error } = await supabaseClient.from('transactions').insert(payload); if(error) throw error; }
@@ -416,20 +449,28 @@ function switchScenarioType(type) {
   else {lp.innerText=i18n[currentLang].simAdjust;mu.style.display='none';iu.style.display='none';smu.style.display='none';document.getElementById('sc-price').value='2,000';nl.innerText=i18n[currentLang].simAdjust;} 
   updateScenario(); 
 }
-function populateStartMonths() {
-  const select = document.getElementById('sc-start-month');
-  select.innerHTML = monthOrder.map(m => `<option value="${m}">${m}</option>`).join('');
-  select.value = currentMonth;
+function renderScenarioMonthChips() {
+  const container = document.getElementById('sc-month-chips');
+  if(!container) return;
+  container.innerHTML = monthOrder.map(m => {
+    let name = currentLang === 'th' ? m.abbrTh + ' ' + m.th.split(' ')[1] : m.abbrEn + ' ' + m.en.split(' ')[1];
+    let active = m.id === selectedScenarioMonthId ? 'active' : '';
+    return `<div class="month-chip ${active}" onclick="selectScenarioMonth('${m.id}')">${name}</div>`;
+  }).join('');
+}
+function selectScenarioMonth(id) {
+  selectedScenarioMonthId = id;
+  renderScenarioMonthChips();
+  updateScenario();
 }
 function updateScenario() {
-  const cBal=getTotals(currentMonth).in_-getTotals(currentMonth).out-getTotals(currentMonth).debt-getTotals(currentMonth).save; 
+  const cBal=getTotals(currentMonthId).in_-getTotals(currentMonthId).out-getTotals(currentMonthId).debt-getTotals(currentMonthId).save; 
   document.getElementById('sc-current-bal').innerText=cBal.toLocaleString()+' ฿'; 
   const price=parseNumber(document.getElementById('sc-price').value); const months=parseInt(document.getElementById('sc-month-slider').value); const interest=parseInt(document.getElementById('sc-interest-slider').value); 
   document.getElementById('sc-month-label').innerText=months+(currentLang==='th'?' เดือน':' Months'); 
   document.getElementById('sc-interest-label').innerText=interest+'%'; 
   
-  const startMonth = document.getElementById('sc-start-month').value;
-  let startIdx = monthOrder.indexOf(startMonth);
+  let startIdx = monthOrder.findIndex(m => m.id === selectedScenarioMonthId);
   if (startIdx === -1) startIdx = 0;
 
   let mImp=0, bD=[], aD=[]; 
@@ -462,7 +503,8 @@ function showPreview() {
   const price = parseNumber(document.getElementById('sc-price').value);
   const months = parseInt(document.getElementById('sc-month-slider').value);
   const interest = parseInt(document.getElementById('sc-interest-slider').value);
-  const startMonth = document.getElementById('sc-start-month').value;
+  const mObj = monthOrder.find(m => m.id === selectedScenarioMonthId);
+  const startMonthName = currentLang === 'th' ? mObj.th : mObj.en;
   
   let monthly = 0, totalInterest = 0;
   if (interest === 0) { monthly = price / months; } 
@@ -474,7 +516,7 @@ function showPreview() {
     <p><strong>จำนวนงวด:</strong> ${months} เดือน</p>
     <p><strong>เงินต้นทั้งหมด:</strong> ${price.toLocaleString()} ฿</p>
     <p><strong>ดอกเบี้ยรวม:</strong> ${Math.round(totalInterest).toLocaleString()} ฿</p>
-    <p style="margin-top:12px; color:#636366; font-size:14px;">รายการนี้จะเริ่มหักยอดเงินต้นในเดือน <strong>${startMonth}</strong> และหักยอดให้อัตโนมัติทุกเดือน จนครบ ${months} งวด</p>
+    <p style="margin-top:12px; color:#636366; font-size:14px;">รายการนี้จะเริ่มหักยอดเงินต้นในเดือน <strong>${startMonthName}</strong> และหักยอดให้อัตโนมัติทุกเดือน จนครบ ${months} งวด</p>
   `;
   document.getElementById('preview-overlay').classList.add('active');
   document.getElementById('preview-sheet').classList.add('active');
@@ -486,19 +528,19 @@ function closePreview() {
 async function confirmScenario() { 
   closePreview();
   const price=parseNumber(document.getElementById('sc-price').value); const months=parseInt(document.getElementById('sc-month-slider').value); const interest=parseInt(document.getElementById('sc-interest-slider').value); 
-  const startMonth = document.getElementById('sc-start-month').value;
   let i=(interest/100)/12; let m=interest===0?price/months:(price*i*Math.pow(1+i,months))/(Math.pow(1+i,months)-1);
-  const payload={name:'ผ่อนของ (Scenario)', amount:Math.round(m), type:'debt', category:'ผ่อน', total_debt:price, occurrence:'installment', month_key: startMonth, start_month: startMonth, months: months}; 
+  const payload={name:'ผ่อนของ (Scenario)', notes:'ผ่อนของ (Scenario)', amount:Math.round(m), type:'debt', category:'ผ่อน', icon:'🛒', total_debt:price, occurrence:'installment', month_key: selectedScenarioMonthId, start_month: selectedScenarioMonthId, months: months}; 
 
   if (isGuest) {
     const newId = 'guest' + Date.now();
-    let startIdx = monthOrder.indexOf(startMonth);
+    let startIdx = monthOrder.findIndex(m => m.id === selectedScenarioMonthId);
     for (let i = 0; i < months; i++) {
       let tIdx = startIdx + i;
       if (tIdx < monthOrder.length) {
-        if (!monthsData[monthOrder[tIdx]]) monthsData[monthOrder[tIdx]] = [];
+        if (!monthsData[monthOrder[tIdx].id]) monthsData[monthOrder[tIdx].id] = [];
         let remaining = price - (Math.round(m) * i); if (remaining < 0) remaining = 0;
-        monthsData[monthOrder[tIdx]].push({ id: newId + '_' + monthOrder[tIdx], name: payload.name, amount: payload.amount, type: 'debt', category: 'ผ่อน', total_debt: remaining, occurrence: 'installment' });
+        let remMonths = months - i;
+        monthsData[monthOrder[tIdx].id].push({ id: newId + '_' + monthOrder[tIdx].id, name: 'ผ่อนของ (Scenario)', amount: payload.amount, type: 'debt', category: 'ผ่อน', icon: '🛒', total_debt: remaining, occurrence: 'installment', months: remMonths });
       }
     }
     switchScreen('planner', { currentTarget: document.querySelectorAll('.nav-btn')[1] }); renderHome(); renderPlanner();
@@ -512,4 +554,5 @@ async function confirmScenario() {
 function toggleDarkMode() { document.body.classList.toggle('dark-mode'); const isD=document.body.classList.contains('dark-mode'); document.getElementById('dark-mode-toggle').style.background=isD?'#30D158':'#d1d1d6'; document.getElementById('dark-knob').style.transform=isD?'translateX(20px)':'translateX(0)'; }
 
 // Init
-populateStartMonths();
+selectedScenarioMonthId = currentMonthId;
+renderScenarioMonthChips();
