@@ -119,15 +119,15 @@
     </div>
 
     <div id="income-group" style="display:none;">
-      <div class="form-group"><label class="form-label">เงินเดือน (Gross)</label><input type="text" class="input-field" id="form-gross" placeholder="0" oninput="calcNetIncome()"></div>
-      <div class="form-group"><label class="form-label">รายได้อื่นๆ</label><input type="text" class="input-field" id="form-other-income" placeholder="0" oninput="calcNetIncome()"></div>
+      <div class="form-group"><label class="form-label">เงินเดือน (Gross)</label><input type="text" class="input-field" inputmode="numeric" id="form-gross" placeholder="0" oninput="formatAmountInput(this, calcNetIncome)"></div>
+      <div class="form-group"><label class="form-label">รายได้อื่นๆ</label><input type="text" class="input-field" inputmode="numeric" id="form-other-income" placeholder="0" oninput="formatAmountInput(this, calcNetIncome)"></div>
       
       <details class="accordion-card">
         <summary data-i18n="deductions">รายการหัก (Optional)</summary>
-        <div class="form-group"><label class="form-label">ภาษี</label><input type="text" class="input-field" id="form-tax" placeholder="0" oninput="calcNetIncome()"></div>
-        <div class="form-group"><label class="form-label">ประกันสังคม</label><input type="text" class="input-field" id="form-ss" placeholder="0" oninput="calcNetIncome()"></div>
-        <div class="form-group"><label class="form-label">กองทุนสำรองเลี้ยงชีพ (PVD)</label><input type="text" class="input-field" id="form-pvd" placeholder="0" oninput="calcNetIncome()"></div>
-        <div class="form-group"><label class="form-label">กยศ.</label><input type="text" class="input-field" id="form-student-loan" placeholder="0" oninput="calcNetIncome()"></div>
+        <div class="form-group"><label class="form-label">ภาษี</label><input type="text" class="input-field" inputmode="numeric" id="form-tax" placeholder="0" oninput="formatAmountInput(this, calcNetIncome)"></div>
+        <div class="form-group"><label class="form-label">ประกันสังคม</label><input type="text" class="input-field" inputmode="numeric" id="form-ss" placeholder="0" oninput="formatAmountInput(this, calcNetIncome)"></div>
+        <div class="form-group"><label class="form-label">กองทุนสำรองเลี้ยงชีพ (PVD)</label><input type="text" class="input-field" inputmode="numeric" id="form-pvd" placeholder="0" oninput="formatAmountInput(this, calcNetIncome)"></div>
+        <div class="form-group"><label class="form-label">กยศ.</label><input type="text" class="input-field" inputmode="numeric" id="form-student-loan" placeholder="0" oninput="formatAmountInput(this, calcNetIncome)"></div>
       </details>
 
       <div class="calc-result" id="calc-net-income" style="display:block;">
@@ -138,7 +138,7 @@
 
     <div class="form-group" id="installment-group" style="display:none;">
       <div style="display: flex; gap: 12px; margin-bottom: 12px;">
-        <div style="flex: 1;"><label class="form-label" data-i18n="totalPrice">เงินต้น</label><input type="text" class="input-field" inputmode="numeric" id="form-total-debt" placeholder="30,000" oninput="calcInstallment()"></div>
+        <div style="flex: 1;"><label class="form-label" data-i18n="totalPrice">เงินต้น</label><input type="text" class="input-field" inputmode="numeric" id="form-total-debt" placeholder="30,000" oninput="formatAmountInput(this, calcInstallment)"></div>
         <div style="flex: 1;"><label class="form-label" data-i18n="months">จำนวนงวด</label><input type="number" class="input-field" id="form-months" placeholder="10" oninput="calcInstallment()"></div>
       </div>
       <label class="form-label" data-i18n="interestRate">ดอกเบี้ย (%) ต่อปี</label>
@@ -146,7 +146,7 @@
       <div class="calc-result" id="calc-result"><p data-i18n="monthlyCalc">ยอดผ่อนต่อเดือน (คำนวณอัตโนมัติ)</p><h4 id="calc-monthly">0 ฿</h4></div>
     </div>
 
-    <div class="form-group" id="amount-group"><label class="form-label" id="amount-label" data-i18n="amount">ยอดเงิน</label><input type="text" class="input-field" inputmode="numeric" id="form-amount" placeholder="0" style="font-size: 24px; font-weight: 700;"></div>
+    <div class="form-group" id="amount-group"><label class="form-label" id="amount-label" data-i18n="amount">ยอดเงิน</label><input type="text" class="input-field" inputmode="numeric" id="form-amount" placeholder="0" style="font-size: 24px; font-weight: 700;" oninput="formatAmountInput(this)"></div>
     
     <div class="form-group" id="notes-group"><label class="form-label">Notes (รายละเอียดเพิ่มเติม - ไม่ใส่ก็ได้)</label><input type="text" class="input-field" id="form-notes" placeholder="เช่น ค่าก๋วยเตี๋ยวเรือ"></div>
 
