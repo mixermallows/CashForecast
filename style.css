@@ -346,3 +346,35 @@ select {
 .cat-btn span.label { font-size: 10px; font-weight: 500; color: var(--text-secondary); text-align: center; line-height: 1.1; }
 .cat-btn.active { background: rgba(10, 132, 255, 0.1); border-color: rgba(10, 132, 255, 0.2); }
 .cat-btn.active span.label { color: #0A84FF; }
+/* Apple Style Dropdown */
+.sim-card select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: rgba(255,255,255,0.1);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  padding: 14px 40px 14px 16px;
+  font-size: 16px;
+  font-weight: 500;
+  width: 100%;
+  cursor: pointer;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="16" viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+.sim-card select option {
+  background: #1c1c3e;
+  color: white;
+}
+
+/* ตัวเลข Label บนกราฟ Simulator */
+.chart-label-overlay {
+  position: absolute;
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  transform: translate(-50%, -120%);
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
